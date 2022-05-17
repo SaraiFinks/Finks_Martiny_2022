@@ -1,0 +1,2973 @@
+---
+title: "Plasmids as reservoirs of environmentally-adaptive bacterial traits"
+author: "Sarai S. Finks"
+date: "6/1/2020"
+output:
+  html_document: 
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+    keep_md: yes
+  pdf_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Working directory, include=FALSE, echo=FALSE}
+
+getwd()
+setwd("/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/github")
+
+```
+
+```{r Load packages, include=FALSE, echo=FALSE}
+
+library(biomformat)
+library(broom)
+library(car)
+library(clustsig)
+library(data.table)
+library(datarium)
+library(DescTools)
+library(dplyr)
+library(devtools)
+library(EcolUtils)
+library(ExPosition)
+library(emmeans)
+library(forcats)
+library(gapminder)
+library(ggplot2)
+library(ggpmisc)
+library(ggrepel)
+library(ggridges)
+library(gplots)
+library(ggpubr)
+library(Hmisc)
+library(lmerTest)
+library(lubridate)
+library(lsmeans)
+library(mblm)
+library(multcomp)
+library(multcompView)
+library(phyloseq)
+library(picante)
+library(plyr)
+library(psych)
+library(purrr)
+library(RColorBrewer)
+library(readxl)
+library(reshape2)
+library(rcompanion)
+library(Rmisc)
+library(rstatix)
+library(scales)
+library(sm)
+library(stringr)
+library(tidyr)
+library(tidyverse)
+library(vegan)
+library(xlsx)
+
+```
+
+```{r Plasmid counts, size, coding density by environment and host-taxonomy,  include=FALSE, echo=FALSE}
+
+filtered.plsdb <-
+  read_excel(
+    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/filtered_plsdb.xlsx"
+  )
+
+filtered.plsdb  <-
+  as.data.frame(filtered.plsdb, col.names	=	TRUE,	row.names	=	TRUE)
+filtered.plsdb[1:10 , 1:10]
+
+filtered.plsdb.1 <- filtered.plsdb[-1]
+row.names(filtered.plsdb.1) <- filtered.plsdb$UID_NUCCORE
+sapply(filtered.plsdb.1, class)
+filtered.plsdb.1[1:10, 1:10]
+
+#Figure A1 - Taxonomic representation of plasmid host by environment in the PLSDB dataset.
+summary(filtered.plsdb.1)
+summary(filtered.plsdb.1$environment)
+Hmisc::describe(filtered.plsdb.1)
+attach(filtered.plsdb.1)
+
+#Calculate the counts/percentages of plasmids by host-taxonomy given environment
+filtered.plsdb.1$taxon_phylum_name <-
+  factor(
+    filtered.plsdb.1$taxon_phylum_name,
+    levels = c(
+      "Actinobacteria",
+      "Bacteroidetes",
+      "Chlamydiae",
+      "Cyanobacteria",
+      "Deinococcus-Thermus",
+      "Firmicutes",
+      "Fusobacteria",
+      "Planctomycetes",
+      "Proteobacteria",
+      "Spirochaetes",
+      "Tenericutes"
+    )
+  )
+plasmid_prop_env_taxa <-
+  filtered.plsdb.1 %>% group_by(environment) %>% dplyr::count(taxon_phylum_name) %>% filter(!is.na(taxon_phylum_name)) %>% mutate(ratio = scales::percent(n / sum(n)))
+
+#write.xlsx(
+#as.data.frame(percentData),
+#file = "env.summary.barplot.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+c11 <- c(
+  "#56ae6c",
+  "#cc5b56",
+  "#54aa51",
+  "#bd53c5",
+  "#7fb235",
+  "#be6f36",
+  "#c99d33",
+  "#ba4c46",
+  "#6f65c4",
+  "#d74f2d",
+  "#4baed4"
+)
+
+figure_A1 <-
+  ggplot(plasmid_prop_env_taxa,
+         aes(
+           x = fct_relevel(
+             environment,
+             "human",
+             "animal",
+             "wastewater",
+             "plant",
+             "soil",
+             "marine",
+             "freshwater"
+           ),
+           y = n,
+           fill = taxon_phylum_name
+         )) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_fill_manual(values = c11) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.25), expand = c(0, 0)) +
+  theme_classic() +
+  theme(legend.position = "right") +
+  labs(fill = "Phyla") +
+  xlab(label = "Environment") +
+  ylab(label = "Proportion of Phyla")
+
+plot(figure_A1)
+
+#Calculate mean plasmid size (kbp) across environments
+means.env <-
+  aggregate(
+    x = filtered.plsdb.1$size_kb,
+    # Specify data column
+    by = list(filtered.plsdb.1$environment),
+    # Specify group indicator
+    FUN = mean
+  )
+means.env <-
+  as.data.frame(means.env)
+
+#write.xlsx(
+#means.env,
+#file = "means.env.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#Calculate mean plasmid size (kbp) by host-taxonomy
+means.taxonomy <-
+  aggregate(
+    x = filtered.plsdb.1$size_kb,
+    by = list(filtered.plsdb.1$taxon_phylum_name),
+    FUN = mean
+  )
+means.env <-
+  as.data.frame(means.taxonomy)
+
+#write.xlsx(
+#means.taxonomy,
+#file = "means.taxonomy.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#Calculate mean plasmid size (kbp) by host-taxonomy given environment
+means.taxa.env <-
+  aggregate(
+    x = filtered.plsdb.1$size_kb,
+    by = list(
+      filtered.plsdb.1$environment,
+      filtered.plsdb.1$taxon_phylum_name
+    ),
+    FUN = mean
+  )
+means.taxa.env <-
+  as.data.frame(means.taxa.env)
+
+#write.xlsx(
+#means.taxa.env,
+#file = "means.taxa.env.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+# row.names = TRUE
+#)
+
+#Figures 1 and A2 - plasmid size variation across environment, host-taxonomy, and host-taxonomy given environment.
+
+#Non-parametric tests, assumptions for ANOVA not met.
+kw.size.env <-
+  kruskal.test(plasmid_size_log10_trans ~ environment,
+               data = filtered.plsdb.1)
+kw.size.env
+
+filtered.plsdb.1 %>% kruskal_effsize(plasmid_size_log10_trans ~ environment)
+
+kw.size.taxonomy <-
+  kruskal.test(plasmid_size_log10_trans ~ taxon_phylum_name,
+               data = filtered.plsdb.1)
+kw.size.taxonomy
+
+filtered.plsdb.1 %>% kruskal_effsize(plasmid_size_log10_trans ~ taxon_phylum_name)
+
+kw.size.taxonomy.env <-
+  kruskal.test(plasmid_size_log10_trans ~ phylum_by_env,
+               data = filtered.plsdb.1)
+kw.size.taxonomy.env
+
+filtered.plsdb.1 <- as_tibble(filtered.plsdb.1)
+
+proteobacteria.size <- subset(
+  filtered.plsdb.1,
+  phylum_by_env %in% c(
+    "Proteobacteria_human",
+    "Proteobacteria_animal",
+    "Proteobacteria_wastewater",
+    "Proteobacteria_plant",
+    "Proteobacteria_soil",
+    "Proteobacteria_marine",
+    "Proteobacteria_freshwater"
+  )
+)
+
+kw.size.proteobacteria.env <-
+  kruskal.test(proteobacteria.size$plasmid_size_log10_trans ~ proteobacteria.size$environment)
+
+kw.size.proteobacteria.env
+
+filtered.plsdb.1 %>% kruskal_effsize(plasmid_size_log10_trans ~ phylum_by_env)
+
+#Post-hoc comparisons (non-parametric)
+WT.size.env <-
+  pairwise.wilcox.test(
+    filtered.plsdb.1$plasmid_size_log10_trans,
+    filtered.plsdb.1$environment,
+    p.adjust.method = "bonferroni"
+  )
+WT.size.env
+WT.env.tidy <- tidy(WT.size.env)
+WT.env.tidy <- as.data.frame(WT.env.tidy)
+
+#write.xlsx(
+#as.data.frame(WT.env.tidy),
+#file = "posthoc_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+WT.size.taxonomy <-
+  pairwise.wilcox.test(
+    filtered.plsdb.1$plasmid_size_log10_trans,
+    filtered.plsdb.1$taxon_phylum_name,
+    p.adjust.method = "bonferroni"
+  )
+
+WT.size.taxonomy
+WT.taxonomy.tidy <- tidy(WT.size.taxonomy)
+WT.taxonomy.tidy <- as.data.frame(WT.taxonomy.tidy)
+
+#write.xlsx(
+#as.data.frame(WT.taxonomy.tidy),
+#file = "posthoc_taxonomy.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+WT.size.taxonomy.env <-
+  pairwise.wilcox.test(
+    filtered.plsdb.1$plasmid_size_log10_trans,
+    filtered.plsdb.1$phylum_by_env,
+    p.adjust.method = "bonferroni"
+  )
+WT.size.taxonomy.env
+WT.taxonomy.env.tidy <- tidy(WT.size.taxonomy.env)
+WT.taxonomy.env.tidy <- as.data.frame(WT.taxonomy.env.tidy)
+
+#write.xlsx(
+#as.data.frame(WT.taxonomy.env.tidy),
+#file = "wilcoxon_posthoc_taxonomy_env.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#Figure 1 - Plasmid size distributions vary significantly by environment
+c07a <- c("#7769d6",
+          "#b861b6",
+          "#eda4ba",
+          "#6ea352",
+          "#c47f3a",
+          "#c94a67",
+          "#6895c8")
+
+figure_1 <-
+  ggplot(
+    filtered.plsdb.1,
+    aes(
+      x = plasmid_size_log10_trans,
+      y = fct_relevel(
+        environment,
+        "human",
+        "animal",
+        "wastewater",
+        "plant",
+        "soil",
+        "marine",
+        "freshwater"
+      ),
+      fill = fct_relevel(
+        environment,
+        "human",
+        "animal",
+        "wastewater",
+        "plant",
+        "soil",
+        "marine",
+        "freshwater"
+      )
+    )
+  ) +
+  scale_fill_manual(values = c07a) +
+  stat_density_ridges(
+    quantile_lines = TRUE,
+    quantiles = 0.5,
+    scale = 2.5,
+    alpha = 0.7
+  ) +
+  scale_x_continuous(breaks = seq(0, 7, by = 0.5), expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  coord_cartesian(clip = 'off') +
+  theme_classic() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(x = 'Plasmid size (Log10 bp)',
+       y = 'Environment',
+       fill = 'Environment',
+       color = "none")
+
+plot(figure_1)
+
+#Figure A2 - Plasmid size distributions vary significantly by host taxonomy and environment
+c10a <- c(
+  "#56ae6c",
+  "#cc5b56",
+  "#54aa51",
+  "#bd53c5",
+  "#7fb235",
+  "#be6f36",
+  "#c99d33",
+  "#6f65c4",
+  "#d74f2d",
+  "#4baed4"
+)
+
+figure_A2_A <-
+  ggplot(
+    subset(
+      filtered.plsdb.1,
+      taxon_phylum_name %in% c(
+        "Actinobacteria",
+        "Bacteroidetes",
+        "Chlamydiae",
+        "Cyanobacteria",
+        "Deinococcus-Thermus",
+        "Firmicutes",
+        "Fusobacteria",
+        "Proteobacteria",
+        "Spirochaetes",
+        "Tenericutes"
+      )
+    ),
+    aes(x = plasmid_size_log10_trans,
+        y = taxon_phylum_name,
+        fill = taxon_phylum_name)
+  ) +
+  scale_fill_manual(values = c10a) +
+  stat_density_ridges(
+    quantile_lines = TRUE,
+    quantiles = 0.5,
+    scale = 2.5,
+    alpha = 0.7
+  ) +
+  scale_x_continuous(breaks = seq(0, 7, by = 0.5), expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  coord_cartesian(clip = 'off') +
+  theme_classic() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank(),
+    legend.position = "none"
+  ) +
+  labs(x = 'Plasmid Size (Log10 bp)',
+       y = 'Phyla',
+       fill = 'Phyla',
+       color = "none")
+
+plot(figure_A2_A)
+
+c07b <- c("#6f65c4",
+          "#6f65c4",
+          "#6f65c4",
+          "#6f65c4",
+          "#6f65c4",
+          "#6f65c4",
+          "#6f65c4")
+
+figure_A2_B <-
+  ggplot(
+    subset(
+      filtered.plsdb.1,
+      phylum_by_env %in% c(
+        "Proteobacteria_human",
+        "Proteobacteria_animal",
+        "Proteobacteria_wastewater",
+        "Proteobacteria_plant",
+        "Proteobacteria_soil",
+        "Proteobacteria_marine",
+        "Proteobacteria_freshwater"
+      )
+    ),
+    aes(
+      x = plasmid_size_log10_trans,
+      y = fct_relevel(
+        phylum_by_env,
+        "Proteobacteria_human",
+        "Proteobacteria_animal",
+        "Proteobacteria_wastewater",
+        "Proteobacteria_plant",
+        "Proteobacteria_soil",
+        "Proteobacteria_marine",
+        "Proteobacteria_freshwater"
+      ),
+      fill = fct_relevel(
+        phylum_by_env,
+        "Proteobacteria_human",
+        "Proteobacteria_animal",
+        "Proteobacteria_wastewater",
+        "Proteobacteria_plant",
+        "Proteobacteria_soil",
+        "Proteobacteria_marine",
+        "Proteobacteria_freshwater"
+      )
+    )
+  ) +
+  scale_fill_manual(values = c07b) +
+  stat_density_ridges(
+    quantile_lines = TRUE,
+    quantiles = 0.5,
+    scale = 2.5,
+    alpha = 0.7
+  ) +
+  scale_x_continuous(breaks = seq(0, 7, by = 0.5), expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  coord_cartesian(clip = 'off') +
+  theme_classic() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank(),
+    legend.position = "none"
+  ) +
+  labs(x = 'Plasmid size (Log10 bp)',
+       y = 'Proteobacteria plasmids')
+
+plot(figure_A2_B)
+
+figure_A2 <-
+  ggarrange(
+    figure_A2_A,
+    figure_A2_B,
+    labels = c("A.", "B."),
+    align = "v",
+    ncol = 1,
+    nrow = 2,
+    widths = c(5, 5)
+  )
+plot(figure_A2)
+
+#Plasmid coding density by environment and host-taxonomy
+kw.density.env <-
+  kruskal.test(coding_ratio ~ environment,
+               data = filtered.plsdb.1)
+kw.density.env
+
+filtered.plsdb.1 %>% kruskal_effsize(coding_ratio ~ environment)
+
+kw.density.taxa <-
+  kruskal.test(coding_ratio ~ taxon_phylum_name,
+               data = filtered.plsdb.1)
+kw.density.taxa
+
+filtered.plsdb.1 %>% kruskal_effsize(coding_ratio ~ taxon_phylum_name)
+
+kw.coding.taxonomy.env <-
+  kruskal.test(coding_ratio ~ phylum_by_env,
+               data = filtered.plsdb.1)
+kw.coding.taxonomy.env
+
+filtered.plsdb.1 %>% kruskal_effsize(coding_ratio ~ phylum_by_env)
+
+#Testing the correlation between plasmid size and coding density
+cod_by_env <-
+  filtered.plsdb.1  %>% group_by(coding_ratio) %>% group_by(size_kb) %>% dplyr::count(coding_ratio)
+
+cod_by_env_filtered <- filter(cod_by_env, size_kb > 2.0)
+
+density_size.corr <-
+  cor.test(cod_by_env_filtered$size_kb,
+           cod_by_env_filtered$coding_ratio,
+           method = "spearman")
+density_size.corr
+
+#Calculate the mean plasmid coding density environment
+mean.env <-
+  ddply(filtered.plsdb.1,
+        .(environment),
+        summarize,
+        mean = mean(coding_ratio))
+mean.env
+
+#Calculate the grand mean plasmid coding density environment
+mean.env %>%
+  mutate(grand.mean = mean(mean))
+
+#Figure A3 - Plasmid coding density by environment
+figure_A3 <-
+  ggplot(data = filtered.plsdb.1,
+         aes(
+           x = fct_relevel(
+             environment,
+             "human",
+             "animal",
+             "wastewater",
+             "plant",
+             "soil",
+             "marine",
+             "freshwater"
+           ),
+           y = coding_ratio,
+           fill = fct_relevel(
+             environment,
+             "human",
+             "animal",
+             "wastewater",
+             "plant",
+             "soil",
+             "marine",
+             "freshwater"
+           ),
+           color = fct_relevel(
+             environment,
+             "human",
+             "animal",
+             "wastewater",
+             "plant",
+             "soil",
+             "marine",
+             "freshwater"
+           )
+         )) +
+  geom_boxplot(
+    outlier.size = 0.5,
+    lwd = 0.5,
+    width = 0.5,
+    fatten = 4,
+    color = '#294240',
+  ) +
+  scale_fill_manual(values = c07a) +
+  scale_color_manual(values = c07a) +
+  labs(x = 'Environment',
+       y = 'Coding Density (genes per kb)') +
+  theme_classic() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank()
+  ) +
+  scale_y_continuous(breaks = seq(0, 3.5, by = 0.5), expand = c(0, 0)) +
+  coord_cartesian(clip = 'off') +
+  geom_hline(yintercept = mean(filtered.plsdb.1$coding_ratio),
+             linetype = 2) + #Add horizontal line at base mean
+  stat_compare_means(method = "kruskal.test", label.y = 3.5) + #Add global kw p-value
+  stat_compare_means(
+    label = "p.signif",
+    label.y = 3.0,
+    method = "wilcox.test",
+    ref.group = ".all."
+  ) +
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "none")
+
+plot(figure_A3)
+
+```
+
+```{r Plasmids mobility traits, include=FALSE, echo=FALSE}
+all_mob <-
+  read_excel(
+    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
+    sheet = "combined"
+  )
+
+all_mob  <-
+  as.data.frame(all_mob,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+#Figure 5 - The proportion of MOB family relaxases by plasmid host-taxonomy
+mob_by_taxa <-
+  all_mob  %>% group_by(host_taxonomy_phylum) %>% group_by(relaxase_family_name) %>% dplyr::count(host_taxonomy_phylum) %>% pivot_wider(names_from = host_taxonomy_phylum, values_from = n)
+
+mob_by_taxa <-
+  as.data.frame(mob_by_taxa, col.names	=	TRUE,	row.names	=	TRUE)
+
+mob_by_taxa[is.na(mob_by_taxa)] <- 0
+
+row.names(mob_by_taxa) = mob_by_taxa[, 1]
+mob_by_taxa_traits <-
+  as.data.frame((mob_by_taxa[,-1]))
+
+mob_by_taxa_traits <- mob_by_taxa_traits[-12, ]
+colSums(mob_by_taxa_traits)
+
+#Combine MOBP family relaxase types
+mob_by_taxa_traits['MOBP1',]
+mob_by_taxa_traits['MOBP2',]
+mob_by_taxa_traits['MOBP3',]
+mob_by_taxa_traits = rbind(mob_by_taxa_traits, colSums(mob_by_taxa_traits[c("MOBP1", "MOBP2", "MOBP3"), ], na.rm = T))
+row.names(mob_by_taxa_traits)[nrow(mob_by_taxa_traits)] = "MOBP"
+rowSums(mob_by_taxa_traits)
+mob_by_taxa_traits['MOBP',]
+which(rownames(mob_by_taxa_traits) == "MOBP1")
+mob_by_taxa_traits <- mob_by_taxa_traits[-(6:8), ]
+rowSums(mob_by_taxa_traits)
+
+#Remember to remove phyla with column sums equal to zero##
+apply(mob_by_taxa_traits, 1, sum)
+mob_by_taxa_traits.t <- t(mob_by_taxa_traits)
+rowSums(mob_by_taxa_traits.t)
+mob_by_taxa_traits.t <- mob_by_taxa_traits.t[-(8:13), ]
+rowSums(mob_by_taxa_traits.t)
+mob_by_taxa_traits.1 <-
+  decostand(mob_by_taxa_traits.t, method = "total")
+apply(mob_by_taxa_traits.1, 1, sum)
+mob_by_taxa_traits.1 <- as.data.frame(mob_by_taxa_traits.1)
+mob_by_taxa_traits.1$row_names <- row.names(mob_by_taxa_traits.1)
+mob_by_taxa_traits.2 <-  mob_by_taxa_traits.1 %>%
+  pivot_longer(!row_names, names_to = "mob_name", values_to = "MOB_abundance")
+
+mob_by_taxa_traits.2 <- as.data.frame(mob_by_taxa_traits.2)
+mob_by_taxa_traits.2$mob_name[mob_by_taxa_traits.2$MOB_abundance < 0.01] <-
+  mob_by_taxa_traits.2$mob_name["MOB < 0.01"]
+
+mob_by_taxa_traits.2$mob_name <-
+  as.character(mob_by_taxa_traits.2$mob_name)
+mob_by_taxa_traits.2$mob_name[is.na(mob_by_taxa_traits.2$mob_name)] <-
+  "MOB < 0.01"
+mob_by_taxa_traits.2$MOB_abundance <-
+  as.numeric(mob_by_taxa_traits.2$MOB_abundance)
+
+c10c <- c(
+  "#d3d3d3",
+  "#cc5b56",
+  "#54aa51",
+  "#bd53c5",
+  "#7fb235",
+  "#be6f36",
+  "#c99d33",
+  "#6f65c4",
+  "#d74f2d",
+  "#4baed4"
+)
+
+figure_5 <-
+  ggplot(mob_by_taxa_traits.2,
+         aes(
+           x = row_names,
+           y = MOB_abundance,
+           fill = fct_reorder(mob_name, MOB_abundance)
+         )) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_fill_manual(values = c10c) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.25), expand = c(0, 0)) +
+  theme_classic() +
+  theme(legend.position = "right") +
+  labs(fill = "mob_name") +
+  xlab(label = "Phyla") +
+  ylab(label = "Proportion of MOB families") +
+  guides(fill = guide_legend(title = "MOB Families"))
+
+plot(figure_5)
+
+#Figure A4 - The proportion of MOB family of relaxases by environment
+mob_by_env_all <-
+  filtered.plsdb.1  %>% group_by(environment) %>% group_by(mobility_designation) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+mob_by_env <-
+  all_mob  %>% group_by(environment) %>% group_by(relaxase_family_name) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+mob_by_env <-
+  as.data.frame(mob_by_env, col.names	=	TRUE)
+
+mob_by_env[is.na(mob_by_env)] <- 0
+
+row.names(mob_by_env) = mob_by_env[, 1]
+mob_by_env_traits <-
+  as.data.frame((mob_by_env[, -1]))
+
+mob_by_env_traits <- mob_by_env_traits[-12, ]
+
+#Combine MOBP family relaxase types
+mob_by_env_traits['MOBP1',]
+mob_by_env_traits['MOBP2',]
+mob_by_env_traits['MOBP3',]
+mob_by_env_traits = rbind(mob_by_env_traits, colSums(mob_by_env_traits[c("MOBP1", "MOBP2", "MOBP3"), ], na.rm = T))
+row.names(mob_by_env_traits)[nrow(mob_by_env_traits)] = "MOBP"
+rowSums(mob_by_env_traits)
+mob_by_env_traits['MOBP',]
+which(rownames(mob_by_env_traits) == "MOBP1")
+mob_by_env_traits <- mob_by_env_traits[-(6:8), ]
+rowSums(mob_by_env_traits)
+
+##Remember to remove phyla with column sums equal to zero##
+apply(mob_by_env_traits, 1, sum)
+mob_by_env_traits.t <- t(mob_by_env_traits)
+rowSums(mob_by_env_traits.t)
+mob_by_env_traits.1 <-
+  decostand(mob_by_env_traits.t, method = "total")
+apply(mob_by_env_traits.1, 1, sum)
+mob_by_env_traits.1 <- as.data.frame(mob_by_env_traits.1)
+mob_by_env_traits.1$row_names <- row.names(mob_by_env_traits.1)
+mob_by_env_traits.2 <-  mob_by_env_traits.1 %>%
+  pivot_longer(!row_names, names_to = "mob_name", values_to = "MOB_abundance")
+
+mob_by_env_traits.2 <- as.data.frame(mob_by_env_traits.2)
+mob_by_env_traits.2$mob_name[mob_by_env_traits.2$MOB_abundance < 0.01] <-
+  mob_by_env_traits.2$mob_name["MOB < 0.01"]
+
+mob_by_env_traits.2$mob_name <-
+  as.character(mob_by_env_traits.2$mob_name)
+
+mob_by_env_traits.2$mob_name[is.na(mob_by_env_traits.2$mob_name)] <-
+  "MOB < 0.01"
+mob_by_env_traits.2$MOB_abundance <-
+  as.numeric(mob_by_env_traits.2$MOB_abundance)
+
+c09b <- c(
+  "#d3d3d3",
+  "#d74f2d",
+  "#54aa51",
+  "#bd53c5",
+  "#c99d33",
+  "#7fb235",
+  "#be6f36",
+  "#6f65c4",
+  "#4baed4"
+)
+
+figure_A4 <-
+  ggplot(mob_by_env_traits.2,
+         aes(
+           x = fct_relevel(
+             row_names,
+             "human",
+             "animal",
+             "wastewater",
+             "plant",
+             "soil",
+             "marine",
+             "freshwater"
+           ),
+           y = MOB_abundance,
+           fill = fct_reorder(mob_name, MOB_abundance)
+         )) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_fill_manual(values = c09b) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.25), expand = c(0, 0)) +
+  theme_classic() +
+  theme(legend.position = "right") +
+  labs(fill = "mob_name") +
+  xlab(label = "Environment") +
+  ylab(label = "Proportion of MOB families") +
+  guides(fill = guide_legend(title = "MOB Families"))
+
+plot(figure_A4)
+
+```
+
+```{r Clusters of Orthologous Groups of Genes, include=FALSE, echo=FALSE}
+
+all_cogs <-
+  read_excel(
+    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
+    sheet = "cogs"
+  )
+
+all_cogs  <-
+  as.data.frame(all_cogs,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+cog_by_env <-
+  all_cogs  %>% group_by(environment) %>% group_by(COG20_CATEGORY_ACC1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+cog_by_env <-
+  as.data.frame(cog_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+cog_by_env[is.na(cog_by_env)] <- 0
+
+row.names(cog_by_env) = cog_by_env[, 1]
+cog_by_env_traits <-
+  as.data.frame((cog_by_env[, -1]))
+
+cog_by_taxa <-
+  all_cogs  %>% group_by(host_taxonomy_phylum) %>% group_by(COG20_CATEGORY_ACC1) %>% dplyr::count(host_taxonomy_phylum) %>% pivot_wider(names_from = host_taxonomy_phylum, values_from = n)
+
+cog_by_taxa <-
+  as.data.frame(cog_by_taxa, col.names	=	TRUE)
+
+cog_by_taxa[is.na(cog_by_taxa)] <- 0
+
+row.names(cog_by_taxa) = cog_by_taxa[, 1]
+cog_by_taxa_traits <-
+  as.data.frame((cog_by_taxa[, -1]))
+
+cog_by_env_taxa <-
+  all_cogs  %>% group_by(phylum_by_env) %>% group_by(COG20_CATEGORY_ACC1) %>% dplyr::count(phylum_by_env) %>% pivot_wider(names_from = phylum_by_env, values_from = n)
+
+cog_by_env_taxa <-
+  as.data.frame(cog_by_env_taxa, col.names	=	TRUE)
+
+cog_by_env_taxa[is.na(cog_by_env_taxa)] <- 0
+
+row.names(cog_by_env_taxa) = cog_by_env_taxa[, 1]
+cog_by_env_taxa_traits <-
+  as.data.frame((cog_by_env_taxa[, -1]))
+
+cog_by_mob <-
+  all_cogs  %>% group_by(mobility_designation) %>% group_by(COG20_CATEGORY_ACC1) %>% dplyr::count(mobility_designation) %>% pivot_wider(names_from = mobility_designation, values_from = n)
+
+cog_by_mob <-
+  as.data.frame(cog_by_mob, col.names	=	TRUE)
+
+cog_by_mob[is.na(cog_by_mob)] <- 0
+
+row.names(cog_by_mob) = cog_by_mob[, 1]
+cog_by_mob_m <-
+  as.data.frame((cog_by_mob[, -1]))
+
+cogs_by_mob_env <-
+  all_cogs  %>% group_by(environment) %>% group_by(mobility_designation) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+cogs_by_mob_env <-
+  as.data.frame(cogs_by_mob_env, col.names	=	TRUE)
+
+cogs_by_mob_env[is.na(cogs_by_mob_env)] <- 0
+
+row.names(cogs_by_mob_env) = cogs_by_mob_env[, 1]
+cogs_by_mob_env_m <-
+  as.data.frame((cogs_by_mob_env[,-1]))
+
+#Test the likelihood of cogs associated with mobilizable plasmids
+G.test.cog.env.mob <- GTest(cogs_by_mob_env_m, correct = "none")
+G.test.cog.env.mob
+
+#Figure 2 - Cumulative COG richness of plasmids by environment
+cog_by_env.rare <-
+  all_cogs  %>% group_by(environment) %>% group_by(COG20_FUNCTION_ACC1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+cog_by_env.rare <-
+  as.data.frame(cog_by_env.rare, col.names	=	TRUE,	row.names	=	TRUE)
+
+cog_by_env.rare[is.na(cog_by_env.rare)] <- 0
+
+row.names(cog_by_env.rare) = cog_by_env.rare[, 1]
+cog_by_env_rare <-
+  as.data.frame((cog_by_env.rare[, -1]))
+
+cog_by_env_rare.t <- t(cog_by_env_rare)
+
+c07c <- c("#b861b6",
+          "#6895c8",
+          "#7769d6",
+          "#c94a67",
+          "#6ea352",
+          "#c47f3a",
+          "#eda4ba")
+
+figure_2 <-
+  rarecurve(
+    cog_by_env_rare.t,
+    step = 1000,
+    xlab = "No.of observed COG functions ",
+    ylab = "Cumulative COG richness",
+    label = TRUE,
+    col = c07c,
+    bty = "n"
+  )
+
+#Figure 3 - Plasmid COG functions by environment
+cog_by_env.cat_traits.m <- as.matrix(cog_by_env_traits)
+which(rownames(cog_by_env.cat_traits.m) == "not_detected")
+cog_by_env.cat_traits.m <- cog_by_env.cat_traits.m[-15,]
+
+#write.xlsx(
+#cog_by_env.cat_traits.m,
+#file = "cog_counts.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+colSums(cog_by_env.cat_traits.m)
+rowSums(cog_by_env.cat_traits.m)
+nrow(cog_by_env.cat_traits.m)
+
+#Remove all rows who sum to less than 6 (i.e., remove rare COG)
+cog_by_env.cat_traits.m2 <-
+  cog_by_env.cat_traits.m[rowSums(cog_by_env.cat_traits.m) >= 6, ]
+nrow(cog_by_env.cat_traits.m)
+rowSums(cog_by_env.cat_traits.m)
+
+colSums(cog_by_env.cat_traits.m2)
+rowSums(cog_by_env.cat_traits.m2)
+nrow(cog_by_env.cat_traits.m2)
+
+#write.xlsx(
+#cog_by_env.cat_traits.m,
+#file = "cog_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#Combine both R + S categories (which have COG functions that are wither general/unknown)
+cog_by_env.cat_traits.m2['R', ]
+cog_by_env.cat_traits.m2['S', ]
+cog_by_env.cat_traits.m2 = rbind(cog_by_env.cat_traits.m2,
+                                 colSums(cog_by_env.cat_traits.m2[c("R", "S"),], na.rm = T))
+row.names(cog_by_env.cat_traits.m2)[nrow(cog_by_env.cat_traits.m2)] = "R+S"
+rowSums(cog_by_env.cat_traits.m2)
+cog_by_env.cat_traits.m2['R+S', ]
+which(rownames(cog_by_env.cat_traits.m2) == "R")
+cog_by_env.cat_traits.m2 <- cog_by_env.cat_traits.m2[-18,]
+cog_by_env.cat_traits.m2 <- cog_by_env.cat_traits.m2[-18,]
+rowSums(cog_by_env.cat_traits.m2)
+
+cog.env.stand <-
+  sweep(cog_by_env.cat_traits.m2,
+        2,
+        colSums(cog_by_env.cat_traits.m2),
+        `/`)
+colSums(cog.env.stand) #all of the columns sums should add to 1
+
+normalized.cog <-
+  rowNorms(cog.env.stand,
+           type = "z",
+           center = TRUE,
+           scale = TRUE)
+
+rowSums(normalized.cog)
+
+#write.xlsx(
+#normalized.cog,
+#file = "cog_categories_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+dist_env_cog <- vegdist(t(normalized.cog), method = 'euclidean')
+clusters.env.cog <- hclust(dist_env_cog, 'ward.D')
+
+dist_cog <- vegdist(normalized.cog, method = 'euclidean')
+clusters.cog <- hclust(dist_cog, 'ward.D')
+
+figure_3 <- heatmap.2(
+  normalized.cog,
+  Rowv = as.dendrogram(clusters.cog),
+  Colv = as.dendrogram(clusters.env.cog),
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.000001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.cog),
+  rowsep = 1:nrow(normalized.cog),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #lmat = rbind(c(0, 3, 4), c(2, 1, 0)),
+  #lwid = c(2, 4, 2)
+)
+
+#Test the likelihood of COG categories across environment
+G.test.cog.env <- GTest(cog_by_env.cat_traits.m2, correct = "none")
+G.test.cog.env
+
+#Figure A5 - Plasmid COG categories by host phylum and environment
+
+#Subset dataframe by Proteobacteria specific columns
+cog_by_env_prot.m <-
+  cog_by_env_taxa_traits %>% dplyr::select(
+    Proteobacteria_animal,
+    Proteobacteria_human,
+    Proteobacteria_wastewater,
+    Proteobacteria_plant,
+    Proteobacteria_soil,
+    Proteobacteria_freshwater,
+    Proteobacteria_marine
+  )
+
+cog_by_env_prot.m <- as.matrix(cog_by_env_prot.m)
+which(rownames(cog_by_env_prot.m) == "not_detected")
+cog_by_env_prot.m <- cog_by_env_prot.m[-15, ]
+
+#write.xlsx(
+#cog_by_env_prot.m,
+#file = "cog_prot_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+colSums(cog_by_env_prot.m)
+rowSums(cog_by_env_prot.m)
+nrow(cog_by_env_prot.m)
+
+#remove all rows who sum to less than 6
+cog_by_env_prot.m2 <-
+  cog_by_env_prot.m[rowSums(cog_by_env_prot.m) >= 6, ]
+nrow(cog_by_env_prot.m2)
+rowSums(cog_by_env_prot.m2)
+
+colSums(cog_by_env_prot.m2)
+rowSums(cog_by_env_prot.m2)
+nrow(cog_by_env_prot.m2)
+
+#combine both R + S categories
+cog_by_env_prot.m2['R', ]
+cog_by_env_prot.m2['S', ]
+cog_by_env_prot.m2 = rbind(cog_by_env_prot.m2, colSums(cog_by_env_prot.m2[c("R", "S"),], na.rm = T))
+row.names(cog_by_env_prot.m2)[nrow(cog_by_env_prot.m2)] = "R+S"
+rowSums(cog_by_env_prot.m2)
+cog_by_env_prot.m2['R+S', ]
+cog_by_env_prot.m2 <- cog_by_env_prot.m2[-18,]
+cog_by_env_prot.m2 <- cog_by_env_prot.m2[-18,]
+rowSums(cog_by_env_prot.m2)
+
+#write.xlsx(
+#cog_by_env_prot.m2,
+#file = "cog_prot_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+cog.env.prot.stand <-
+  sweep(cog_by_env_prot.m2, 2, colSums(cog_by_env_prot.m2), `/`)
+colSums(cog.env.prot.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#cog.env.prot.stand,
+#file = "cog_standardized_by_environment_prot.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.prot.cog <-
+  rowNorms(
+    cog.env.prot.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.prot.cog)
+
+#write.xlsx(
+#normalized.prot.cog,
+#file = "normalized.prot.cog.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+dist_env_prot_cog <-
+  vegdist(t(normalized.prot.cog), method = 'euclidean')
+clusters_env_prot_cog <- hclust(dist_env_prot_cog, 'average')
+
+dist_prot_cog <- vegdist(normalized.prot.cog, method = 'euclidean')
+clusters_prot_cog <- hclust(dist_prot_cog, 'average')
+
+prot_order <- c(
+  "Proteobacteria_human",
+  "Proteobacteria_animal",
+  "Proteobacteria_wastewater",
+  "Proteobacteria_plant",
+  "Proteobacteria_soil",
+  "Proteobacteria_marine",
+  "Proteobacteria_freshwater"
+)
+
+figure_A5_prot = heatmap.2(
+  as.matrix(normalized.prot.cog[, prot_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  dendrogram = c("none"),
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(7, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.000001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.prot.cog),
+  rowsep = 1:nrow(normalized.prot.cog),
+  #cexRow = 0.5,
+ # cexCol = 0.5,
+  ##lhei = c(2, 10),
+  #labRow = row.names(normalized.prot.cog)
+)
+
+#Test the likelihood of COG categories across environment when controlling for host-taxonomy
+G.test.cog.env.prot <- GTest(cog_by_env_prot.m2, correct = "none")
+G.test.cog.env.prot
+
+#Subset dataframe by Firmicutes specific columns
+cog_by_env_firm.m <-
+  cog_by_env_taxa_traits %>% dplyr::select(
+    Firmicutes_animal,
+    Firmicutes_human,
+    Firmicutes_wastewater,
+    Firmicutes_plant,
+    Firmicutes_soil,
+    Firmicutes_freshwater,
+    Firmicutes_marine
+  )
+
+cog_by_env_firm.m <- as.matrix(cog_by_env_firm.m)
+which(rownames(cog_by_env_firm.m) == "not_detected")
+cog_by_env_firm.m <- cog_by_env_firm.m[-15, ]
+
+#write.xlsx(
+#cog_by_env_firm.m,
+#file = "cog_firm_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+colSums(cog_by_env_firm.m)
+rowSums(cog_by_env_firm.m)
+nrow(cog_by_env_firm.m)
+
+#remove all rows who sum to less than 6
+cog_by_env_firm.m2 <-
+  cog_by_env_firm.m[rowSums(cog_by_env_firm.m) >= 6, ]
+nrow(cog_by_env_firm.m2)
+rowSums(cog_by_env_firm.m2)
+
+colSums(cog_by_env_firm.m2)
+rowSums(cog_by_env_firm.m2)
+nrow(cog_by_env_firm.m2)
+
+#combine both R + S categories
+cog_by_env_firm.m2['R', ]
+cog_by_env_firm.m2['S', ]
+cog_by_env_firm.m2 = rbind(cog_by_env_firm.m2, colSums(cog_by_env_firm.m2[c("R", "S"),], na.rm = T))
+row.names(cog_by_env_firm.m2)[nrow(cog_by_env_firm.m2)] = "R+S"
+rowSums(cog_by_env_firm.m2)
+cog_by_env_firm.m2['R+S', ]
+cog_by_env_firm.m2 <- cog_by_env_firm.m2[-16,]
+cog_by_env_firm.m2 <- cog_by_env_firm.m2[-16,]
+rowSums(cog_by_env_firm.m2)
+
+#write.xlsx(
+#cog_by_env_firm.m2,
+#file = "cog_firm_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+cog.env.firm.stand <-
+  sweep(cog_by_env_firm.m2, 2, colSums(cog_by_env_firm.m2), `/`)
+colSums(cog.env.firm.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#cog.env.firm.stand,
+#file = "cog_standardized_by_environment_firm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.firm.cog <-
+  rowNorms(
+    cog.env.firm.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.firm.cog)
+
+#write.xlsx(
+  #normalized.firm.cog,
+  #file = "normalized.firm.cog.xlsx",
+  #sheetName = "Sheet1",
+  #col.names = TRUE,
+  #row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+dist_env_firm_cog <-
+  vegdist(t(normalized.firm.cog), method = 'euclidean')
+clusters_env_firm_cog <- hclust(dist_env_firm_cog, 'average')
+
+dist_firm_cog <- vegdist(normalized.firm.cog, method = 'euclidean')
+clusters_firm_cog <- hclust(dist_firm_cog, 'average')
+
+firm_order <- c(
+  "Firmicutes_human",
+  "Firmicutes_animal",
+  "Firmicutes_wastewater",
+  "Firmicutes_plant",
+  "Firmicutes_soil",
+  "Firmicutes_marine",
+  "Firmicutes_freshwater"
+)
+
+figure_A5_firm = heatmap.2(
+  as.matrix(normalized.firm.cog[, firm_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  dendrogram = c("none"),
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(7, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.000001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.firm.cog),
+  rowsep = 1:nrow(normalized.firm.cog),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.firm.cog)
+)
+
+#Test the likelihood of COG categories across environment when controlling for host-taxonomy
+G.test.cog.env.firm <- GTest(cog_by_env_firm.m2, correct = "none")
+G.test.cog.env.firm
+
+#subset dataframe by Actinobacteria specific columns
+cog_by_env_act.m <-
+  cog_by_env_taxa_traits %>% dplyr::select(
+    Actinobacteria_animal,
+    Actinobacteria_human,
+    Actinobacteria_wastewater,
+    Actinobacteria_plant,
+    Actinobacteria_soil,
+    Actinobacteria_freshwater,
+    Actinobacteria_marine
+  )
+
+cog_by_env_act.m <- as.matrix(cog_by_env_act.m)
+which(rownames(cog_by_env_act.m) == "not_detected")
+cog_by_env_act.m <- cog_by_env_act.m[-15, ]
+
+#write.xlsx(
+#cog_by_env_act.m,
+#file = "cog_act_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+colSums(cog_by_env_act.m)
+rowSums(cog_by_env_act.m)
+nrow(cog_by_env_act.m)
+
+#remove all rows who sum to less than 6
+cog_by_env_act.m2 <-
+  cog_by_env_act.m[rowSums(cog_by_env_act.m) >= 6, ]
+nrow(cog_by_env_act.m2)
+rowSums(cog_by_env_act.m2)
+
+colSums(cog_by_env_act.m2)
+rowSums(cog_by_env_act.m2)
+nrow(cog_by_env_act.m2)
+
+#combine both R + S categories
+cog_by_env_act.m2['R', ]
+cog_by_env_act.m2['S', ]
+cog_by_env_act.m2 = rbind(cog_by_env_act.m2, colSums(cog_by_env_act.m2[c("R", "S"),], na.rm = T))
+row.names(cog_by_env_act.m2)[nrow(cog_by_env_act.m2)] = "R+S"
+rowSums(cog_by_env_act.m2)
+cog_by_env_act.m2['R+S', ]
+cog_by_env_act.m2 <- cog_by_env_act.m2[-16,]
+cog_by_env_act.m2 <- cog_by_env_act.m2[-16,]
+rowSums(cog_by_env_act.m2)
+
+#write.xlsx(
+#cog_by_env_act.m2,
+#file = "cog_act_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+cog.env.act.stand <-
+  sweep(cog_by_env_act.m2, 2, colSums(cog_by_env_act.m2), `/`)
+colSums(cog.env.act.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#cog.env.act.stand,
+#file = "cog_standardized_by_environment_act.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+##)
+
+normalized.act.cog <-
+  rowNorms(cog.env.act.stand,
+           type = "z",
+           center = TRUE,
+           scale = TRUE)
+rowSums(normalized.act.cog)
+
+#write.xlsx(
+#normalized.act.cog,
+#file = "normalized.act.cog.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+dist_env_act_cog <-
+  vegdist(t(normalized.act.cog), method = 'euclidean')
+clusters_env_act_cog <- hclust(dist_env_act_cog, 'average')
+
+dist_act_cog <- vegdist(normalized.act.cog, method = 'euclidean')
+clusters_act_cog <- hclust(dist_act_cog, 'average')
+
+actino_order <- c(
+  "Actinobacteria_human",
+  "Actinobacteria_animal",
+  "Actinobacteria_wastewater",
+  "Actinobacteria_plant",
+  "Actinobacteria_soil",
+  "Actinobacteria_marine",
+  "Actinobacteria_freshwater"
+)
+
+figure_A5_actino = heatmap.2(
+  as.matrix(normalized.act.cog[, actino_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  dendrogram = c("none"),
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(7, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.000001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.act.cog),
+  rowsep = 1:nrow(normalized.act.cog),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.act.cog),
+)
+
+#Test the likelihood of COG categories across environment when controlling for host-taxonomy
+G.test.cog.env.act <- GTest(cog_by_env_act.m2, correct = "none")
+G.test.cog.env.act
+
+```
+
+```{r Carbohydrate utilization traits, include=FALSE, echo=FALSE}
+
+all_cazy <-
+  read_excel(
+    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
+    sheet = "cazymes"
+  )
+
+all_cazy  <-
+  as.data.frame(all_cazy,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+cazy_by_env <-
+  all_cazy  %>% group_by(environment) %>% group_by(cazy_domain1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+cazy_by_env <-
+  as.data.frame(cazy_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+cazy_by_env[is.na(cazy_by_env)] <- 0
+
+row.names(cazy_by_env) = cazy_by_env[, 1]
+cazy_by_env_traits <-
+  as.data.frame((cazy_by_env[, -1]))
+cazy_by_env_traits <- cazy_by_env_traits[-259,]
+
+colSums(cazy_by_env_traits)
+rowSums(cazy_by_env_traits)
+
+cazy_by_taxa <-
+  all_cazy  %>% group_by(host_taxonomy_phylum) %>% group_by(cazy_domain1) %>% dplyr::count(host_taxonomy_phylum) %>% pivot_wider(names_from = host_taxonomy_phylum, values_from = n)
+
+cazy_by_taxa <-
+  as.data.frame(cazy_by_taxa, col.names	=	TRUE)
+
+cazy_by_taxa[is.na(cazy_by_taxa)] <- 0
+
+row.names(cazy_by_taxa) = cazy_by_taxa[, 1]
+cazy_by_taxa_traits <-
+  as.data.frame((cazy_by_taxa[, -1]))
+
+cazy_by_env_taxa <-
+  all_cazy  %>% group_by(phylum_by_env) %>% group_by(cazy_domain1) %>% dplyr::count(phylum_by_env) %>% pivot_wider(names_from = phylum_by_env, values_from = n)
+
+cazy_by_env_taxa <-
+  as.data.frame(cazy_by_env_taxa, col.names	=	TRUE)
+
+cazy_by_env_taxa[is.na(cazy_by_env_taxa)] <- 0
+
+row.names(cazy_by_env_taxa) = cazy_by_env_taxa[, 1]
+cazy_by_env_taxa_traits <-
+  as.data.frame((cazy_by_env_taxa[, -1]))
+
+cazy_by_mob <-
+  all_cazy %>% group_by(mobility_designation) %>% group_by(cazy_domain1) %>% dplyr::count(mobility_designation) %>% pivot_wider(names_from = mobility_designation, values_from = n)
+
+cazy_by_mob <-
+  as.data.frame(cazy_by_mob, col.names	=	TRUE)
+
+cazy_by_mob[is.na(cazy_by_mob)] <- 0
+
+row.names(cazy_by_mob) = cazy_by_mob[, 1]
+cazy_by_mob_m <-
+  as.data.frame((cazy_by_mob[, -1]))
+
+#Test the likelihood of CAZymes associated with mobilizable plasmids
+G.test.cazy.mob.env <- GTest(cazy_by_mob_m, correct = "none")
+G.test.cazy.mob.env
+
+#write.xlsx(
+#cazy_by_mob_m,
+#file = "cazy_by_mob.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment
+
+#Figure 4B
+cazy_by_env_traits.m <- as.matrix(cazy_by_env_traits)
+which(rownames(cazy_by_env_traits.m) == "not_detected")
+cazy_by_env_traits.m <-
+  cazy_by_env_traits.m[-259,]#when by cazydomain1 use row 259 to remove not_detected, row 14 when broader category used
+
+#write.xlsx(
+#cazy_by_env_traits.m,
+#file = "cazy_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+colSums(cazy_by_env_traits.m)
+rowSums(cazy_by_env_traits.m)
+nrow(cazy_by_env_traits.m)
+
+#remove all rows who sum to less than 6
+cazy_by_env_traits.m2 <-
+  cazy_by_env_traits.m[rowSums(cazy_by_env_traits.m) >= 6,]
+nrow(cazy_by_env_traits.m2)
+rowSums(cazy_by_env_traits.m2)
+
+#write.xlsx(
+#cazy_by_env_traits.m2,
+#file = "cazy_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+cazy.env.stand <-
+  sweep(cazy_by_env_traits.m2, 2, colSums(cazy_by_env_traits.m2), `/`)
+colSums(cazy.env.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#cazy.env.stand,
+#file = "cazy_standardized_by_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.cazy <-
+  rowNorms(cazy.env.stand,
+           type = "z",
+           center = TRUE,
+           scale = TRUE)
+rowSums(normalized.cazy)
+
+#write.xlsx(
+#normalized.cazy,
+#file = "normalized.cazy.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_cazy <- vegdist(t(normalized.cazy), method = 'euclidean')
+clusters_env_cazy <- hclust(dist_env_cazy, 'average')
+
+dist_cazy <- vegdist(normalized.cazy, method = 'euclidean')
+clusters_cazy <- hclust(dist_cazy, 'average')
+
+figure_4B <- heatmap.2(
+  normalized.cazy,
+  Rowv = as.dendrogram(clusters_cazy),
+  Colv = as.dendrogram(clusters_env_cazy),
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.cazy),
+  rowsep = 1:nrow(normalized.cazy),
+  #cexRow = 0.25,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #lmat = rbind(c(0, 3, 4), c(2, 1, 0)),
+  #lwid = c(2, 4, 2)
+)
+
+#Test the likelihood of CAZymes across environment
+G.test.cazy.env <- GTest(cazy_by_env_traits.m2, correct = "none")
+G.test.cazy.env
+
+#Figure A7 - Plasmid carbon degrading traits by host phylum and environment.
+
+#Subset dataframe by Proteobacteria specific columns
+cazy_by_env_prot.m <-
+  cazy_by_env_taxa_traits %>% dplyr::select(
+    Proteobacteria_animal,
+    Proteobacteria_human,
+    Proteobacteria_wastewater,
+    Proteobacteria_plant,
+    Proteobacteria_soil,
+    Proteobacteria_freshwater,
+    Proteobacteria_marine
+  )
+
+cazy_by_env_prot.m <- as.matrix(cazy_by_env_prot.m)
+which(rownames(cazy_by_env_prot.m) == "not_detected")
+cazy_by_env_prot.m <-
+  cazy_by_env_prot.m[-259,]#when by cazydomain1 it row 259 that is not_detected, 14 when simplified category used
+
+#write.xlsx(
+#cazy_by_env_traits.m,
+#file = "cazy_prot_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+colSums(cazy_by_env_prot.m)
+rowSums(cazy_by_env_prot.m)
+nrow(cazy_by_env_prot.m)
+
+#remove all rows who sum to less than 6
+cazy_by_env_prot.m2 <-
+  cazy_by_env_prot.m[rowSums(cazy_by_env_prot.m) >= 6,]
+nrow(cazy_by_env_prot.m2)
+rowSums(cazy_by_env_prot.m2)
+
+#write.xlsx(
+#cazy_by_env_prot.m2,
+#file = "cazy_prot_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+cazy.env.prot.stand <-
+  sweep(cazy_by_env_prot.m2, 2, colSums(cazy_by_env_prot.m2), `/`)
+colSums(cazy.env.prot.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#cazy.env.prot.stand,
+#file = "cazy_standardized_by_environment_prot.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.prot.cazy <-
+  rowNorms(
+    cazy.env.prot.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.prot.cazy)
+
+#write.xlsx(
+#normalized.prot.cazy,
+#file = "normalized.prot.cazy.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_prot_cazy <-
+  vegdist(t(normalized.prot.cazy), method = 'euclidean')
+clusters_env_prot_cazy <- hclust(dist_env_prot_cazy, 'average')
+
+dist_prot_cazy <-
+  vegdist(normalized.prot.cazy, method = 'euclidean')
+clusters_prot_cazy <- hclust(dist_prot_cazy, 'average')
+
+figure_A7_prot <- heatmap.2(
+  as.matrix(normalized.prot.cazy[, prot_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.prot.cazy),
+  rowsep = 1:nrow(normalized.prot.cazy),
+  #cexRow = 0.25,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.prot.cazy)
+)
+
+#subset dataframe by Firmicutes specific columns
+cazy_by_env_firm.m <-
+  cazy_by_env_taxa_traits %>% dplyr::select(
+    Firmicutes_animal,
+    Firmicutes_human,
+    Firmicutes_wastewater,
+    Firmicutes_plant,
+    Firmicutes_soil,
+    Firmicutes_freshwater,
+    Firmicutes_marine
+  )
+
+cazy_by_env_firm.m <- as.matrix(cazy_by_env_firm.m)
+cazy_by_env_firm.m <-
+  cazy_by_env_firm.m[-259,]#when by cazydomain1 it row 259 that is not_detected, 14 when simplified category used
+
+#write.xlsx(
+#cazy_by_env_firm.m,
+#file = "cazy_firm_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+colSums(cazy_by_env_firm.m)
+rowSums(cazy_by_env_firm.m)
+nrow(cazy_by_env_firm.m)
+
+#remove all rows who sum to less than 6
+cazy_by_env_firm.m2 <-
+  cazy_by_env_firm.m[rowSums(cazy_by_env_firm.m) >= 6,]
+nrow(cazy_by_env_firm.m2)
+rowSums(cazy_by_env_firm.m2)
+
+#write.xlsx(
+#cazy_by_env_firm.m2,
+#file = "cazy_firm_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+cazy.env.firm.stand <-
+  sweep(cazy_by_env_firm.m2, 2, colSums(cazy_by_env_firm.m2), `/`)
+colSums(cazy.env.firm.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#cazy.env.firm.stand,
+#file = "cazy_standardized_by_environment_firm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.firm.cazy <-
+  rowNorms(
+    cazy.env.firm.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.firm.cazy)
+
+#write.xlsx(
+#normalized.firm.cazy,
+#file = "normalized.firm.cazy.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_firm_cazy <-
+  vegdist(t(normalized.firm.cazy), method = 'euclidean')
+clusters_env_firm_cazy <- hclust(dist_env_firm_cazy, 'average')
+
+dist_firm_cazy <-
+  vegdist(normalized.firm.cazy, method = 'euclidean')
+clusters_firm_cazy <- hclust(dist_firm_cazy, 'average')
+
+figure_A7_firm <- heatmap.2(
+  as.matrix(normalized.firm.cazy[, firm_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.firm.cazy),
+  rowsep = 1:nrow(normalized.firm.cazy),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.firm.cazy)
+)
+
+#subset dataframe by Actinobacteria specific columns
+cazy_by_env_act.m <-
+  cazy_by_env_taxa_traits %>% dplyr::select(
+    Actinobacteria_animal,
+    Actinobacteria_human,
+    Actinobacteria_wastewater,
+    Actinobacteria_plant,
+    Actinobacteria_soil,
+    Actinobacteria_freshwater,
+    Actinobacteria_marine
+  )
+
+cazy_by_env_act.m <- as.matrix(cazy_by_env_act.m)
+cazy_by_env_act.m <-
+  cazy_by_env_act.m[-259,]#when by cazydomain1 it row 259 that is not_detected, 14 when simplified category used
+
+#write.xlsx(
+#cazy_by_env_act.m,
+#file = "cazy_act_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+colSums(cazy_by_env_act.m)
+rowSums(cazy_by_env_act.m)
+nrow(cazy_by_env_act.m)
+
+#remove all rows who sum to less than 6
+cazy_by_env_act.m2 <-
+  cazy_by_env_act.m[rowSums(cazy_by_env_act.m) >= 6,]
+nrow(cazy_by_env_act.m2)
+rowSums(cazy_by_env_act.m2)
+
+#write.xlsx(
+#cazy_by_env_act.m2,
+#file = "cazy_act_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+cazy.env.act.stand <-
+  sweep(cazy_by_env_act.m2, 2, colSums(cazy_by_env_act.m2), `/`)
+colSums(cazy.env.act.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#cazy.env.act.stand,
+#file = "cazy_standardized_by_environment_act.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.act.cazy <-
+  rowNorms(
+    cazy.env.act.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.act.cazy)
+
+#write.xlsx(
+#normalized.act.cazy,
+#file = "normalized.act.cazy.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_act_cazy <-
+  vegdist(t(normalized.act.cazy), method = 'euclidean')
+clusters_env_act_cazy <- hclust(dist_env_act_cazy, 'average')
+
+dist_act_cazy <- vegdist(normalized.act.cazy, method = 'euclidean')
+clusters_act_cazy <- hclust(dist_act_cazy, 'average')
+
+figure_A7_actino <- heatmap.2(
+  as.matrix(normalized.act.cazy[, actino_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(7, 28),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.act.cazy),
+  rowsep = 1:nrow(normalized.act.cazy),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.act.cazy)
+)
+
+```
+
+```{r Nitrogen cycling traits, include=FALSE, echo=FALSE}
+
+all_nit <-
+  read_excel(
+    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
+    sheet = "ncycl_v2"
+  )
+
+all_nit  <-
+  as.data.frame(all_nit,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+nit_by_env <-
+  all_nit  %>% group_by(environment) %>% group_by(gene_family) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+nit_by_env <-
+  as.data.frame(nit_by_env, col.names	=	TRUE)
+
+nit_by_env[is.na(nit_by_env)] <- 0
+
+row.names(nit_by_env) = nit_by_env[, 1]
+nit_by_env_traits <-
+  as.data.frame((nit_by_env[, -1]))
+
+nit_by_taxa <-
+  all_nit  %>% group_by(host_taxonomy_phylum) %>% group_by(gene_family) %>% dplyr::count(host_taxonomy_phylum) %>% pivot_wider(names_from = host_taxonomy_phylum, values_from = n)
+
+nit_by_taxa <-
+  as.data.frame(nit_by_taxa, col.names	=	TRUE,	row.names	=	TRUE)
+
+nit_by_taxa[is.na(nit_by_taxa)] <- 0
+
+row.names(nit_by_taxa) = nit_by_taxa[, 1]
+nit_by_taxa_traits <-
+  as.data.frame((nit_by_taxa[, -1]))
+
+nit_by_env_taxa <-
+  all_nit  %>% group_by(phylum_by_env) %>% group_by(gene_family) %>% dplyr::count(phylum_by_env) %>% pivot_wider(names_from = phylum_by_env, values_from = n)
+
+nit_by_env_taxa <-
+  as.data.frame(nit_by_env_taxa, col.names	=	TRUE)
+
+nit_by_env_taxa[is.na(nit_by_env_taxa)] <- 0
+
+row.names(nit_by_env_taxa) = nit_by_env_taxa[, 1]
+nit_by_env_taxa_traits <-
+  as.data.frame((nit_by_env_taxa[, -1]))
+
+nit_by_mob <-
+  all_nit  %>% group_by(mobility_designation) %>% group_by(gene_family) %>% dplyr::count(mobility_designation) %>% pivot_wider(names_from = mobility_designation, values_from = n)
+
+nit_by_mob <-
+  as.data.frame(nit_by_mob, col.names	=	TRUE)
+
+nit_by_mob[is.na(nit_by_mob)] <- 0
+
+row.names(nit_by_mob) = nit_by_mob[, 1]
+nit_by_mob.m <-
+  as.data.frame((nit_by_mob[, -1]))
+
+nit_by_mob_env <-
+  all_nit  %>% group_by(environment) %>% group_by(mobility_designation) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+nit_by_mob_env <-
+  as.data.frame(nit_by_mob_env, col.names	=	TRUE)
+
+nit_by_mob_env[is.na(nit_by_mob_env)] <- 0
+
+row.names(nit_by_mob_env) = nit_by_mob_env[, 1]
+nit_by_mob_env_m <-
+  as.data.frame((nit_by_mob_env[,-1]))
+
+#Test the likelihood of nitrogen genes associated with mobilizable plasmids
+G.test.nit.mob.env <- GTest(nit_by_mob.m, correct = "none")
+G.test.nit.mob.env
+
+#Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment.
+#Figure 4C
+nit_by_env_traits.m <- as.matrix(nit_by_env_traits)
+which(rownames(nit_by_env_traits.m) == "not_detected")
+nit_by_env_traits.m <-
+  nit_by_env_traits.m[-39, ]#row 39 when at the gene family level 6 when pathway
+
+colSums(nit_by_env_traits.m)
+rowSums(nit_by_env_traits.m)
+nrow(nit_by_env_traits.m)
+
+#write.xlsx(
+#nit_by_env_traits.m,
+#file = "nit_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+#remove all rows who sum to less than 6
+nit_by_env_traits.m2 <-
+  nit_by_env_traits.m[rowSums(nit_by_env_traits.m) >= 6, ]
+nrow(nit_by_env_traits.m2)
+rowSums(nit_by_env_traits.m2)
+
+colSums(nit_by_env_traits.m2)
+rowSums(nit_by_env_traits.m2)
+nrow(nit_by_env_traits.m2)
+
+#write.xlsx(
+#nit_by_env_traits.m2,
+#file = "nit_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+nit.env.stand <-
+  sweep(nit_by_env_traits.m2, 2, colSums(nit_by_env_traits.m2), `/`)
+colSums(nit.env.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#nit.env.stand,
+#file = "nit_standardized_by_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.nit <-
+  rowNorms(nit.env.stand,
+           type = "z",
+           center = TRUE,
+           scale = TRUE)
+rowSums(normalized.nit)
+
+#write.xlsx(
+#normalized.nit,
+#file = "nit_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_nit <- vegdist(t(normalized.nit), method = 'euclidean')
+clusters.env_nit <- hclust(dist_env_nit, 'average')
+
+dist_nit <- vegdist(normalized.nit, method = 'euclidean')
+clusters.nit <- hclust(dist_nit, 'average')
+
+figure_4C <- heatmap.2(
+  normalized.nit,
+  Rowv = as.dendrogram(clusters.nit),
+  Colv = as.dendrogram(clusters.env_nit),
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 36),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.nit),
+  rowsep = 1:nrow(normalized.nit),
+  #cexRow = 0.5,
+  #cexCol = 1,
+  #lhei = c(2, 10),
+  #lmat = rbind(c(0, 3, 4), c(2, 1, 0)),
+  #lwid = c(2, 4, 2)
+)
+
+#Test the likelihood of nitrogen gene families across environment
+G.test.nit.env <- GTest(nit_by_env_traits.m2, correct = "none")
+G.test.nit.env
+
+
+#Figure A8 - Plasmid nitrogen cycling traits by host phylum and environment.
+
+#Subset dataframe by Proteobacteria specific columns
+nit_by_env_prot.m <-
+  nit_by_env_taxa_traits %>% dplyr::select(
+    Proteobacteria_animal,
+    Proteobacteria_human,
+    Proteobacteria_wastewater,
+    Proteobacteria_plant,
+    Proteobacteria_soil,
+    Proteobacteria_freshwater,
+    Proteobacteria_marine
+  )
+
+nit_by_env_prot.m  <- as.matrix(nit_by_env_prot.m)
+nit_by_env_prot.m <-
+  nit_by_env_prot.m[-39, ]#row 39 when at the gene family level 6 when pathway
+
+colSums(nit_by_env_prot.m)
+rowSums(nit_by_env_prot.m)
+nrow(nit_by_env_prot.m)
+
+#write.xlsx(
+#nit_by_env_prot.m,
+#file = "nit_prot_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#remove all rows who sum to less than 6
+nit_by_env_prot.m2 <-
+  nit_by_env_prot.m[rowSums(nit_by_env_prot.m) >= 6, ]
+nrow(nit_by_env_prot.m2)
+rowSums(nit_by_env_prot.m2)
+
+colSums(nit_by_env_prot.m2)
+rowSums(nit_by_env_prot.m2)
+nrow(nit_by_env_prot.m2)
+
+#write.xlsx(
+#nit_by_env_prot.m2,
+#file = "nit_prot_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+nit.env.prot.stand <-
+  sweep(nit_by_env_prot.m2, 2, colSums(nit_by_env_prot.m2), `/`)
+colSums(nit.env.prot.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#nit.env.prot.stand,
+#file = "nit_prot_standardized_by_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.prot.nit <-
+  rowNorms(
+    nit.env.prot.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.prot.nit)
+
+#write.xlsx(
+#normalized.prot.nit,
+#file = "nit_prot_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_prot_nit <-
+  vegdist(t(normalized.prot.nit), method = 'euclidean')
+clusters.env.prot.nit <- hclust(dist_env_prot_nit, 'average')
+
+dist_prot_nit <- vegdist(normalized.prot.nit, method = 'euclidean')
+clusters.prot.nit <- hclust(dist_prot_nit, 'average')
+
+figure_A8_prot <- heatmap.2(
+  as.matrix(normalized.prot.nit[, prot_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.prot.nit),
+  rowsep = 1:nrow(normalized.prot.nit),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.prot.nit)
+)
+
+#subset dataframe by Firmicutes specific columns
+nit_by_env_firm.m <-
+  nit_by_env_taxa_traits %>% dplyr::select(
+    Firmicutes_animal,
+    Firmicutes_human,
+    Firmicutes_wastewater,
+    Firmicutes_plant,
+    Firmicutes_soil,
+    Firmicutes_freshwater,
+    Firmicutes_marine
+  )
+
+nit_by_env_firm.m  <- as.matrix(nit_by_env_firm.m)
+nit_by_env_firm.m <-
+  nit_by_env_firm.m[-39, ]#row 39 when at the gene family level 6 when pathway
+
+colSums(nit_by_env_firm.m)
+rowSums(nit_by_env_firm.m)
+nrow(nit_by_env_firm.m)
+
+#write.xlsx(
+#nit_by_env_firm.m,
+#file = "nit_firm_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#remove all rows who sum to less than 6
+nit_by_env_firm.m2 <-
+  nit_by_env_firm.m[rowSums(nit_by_env_firm.m) >= 6, ]
+nrow(nit_by_env_firm.m2)
+rowSums(nit_by_env_firm.m2)
+
+colSums(nit_by_env_firm.m2)
+rowSums(nit_by_env_firm.m2)
+nrow(nit_by_env_firm.m2)
+
+#write.xlsx(
+#nit_by_env_firm.m2,
+#file = "nit_firm_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+nit.env.firm.stand <-
+  sweep(nit_by_env_firm.m2, 2, colSums(nit_by_env_firm.m2), `/`)
+colSums(nit.env.firm.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#nit.env.firm.stand ,
+#file = "nit_firm_standardized_by_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.firm.nit <-
+  rowNorms(
+    nit.env.firm.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.firm.nit)
+
+#write.xlsx(
+#normalized.firm.nit,
+#file = "nit_firm_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_firm_nit <-
+  vegdist(t(normalized.firm.nit), method = 'euclidean')
+clusters.env.firm.nit <- hclust(dist_env_firm_nit, 'average')
+
+dist_firm_nit <- vegdist(normalized.firm.nit, method = 'euclidean')
+clusters.firm.nit <- hclust(dist_firm_nit, 'average')
+
+figure_A8_firm <- heatmap.2(
+  as.matrix(normalized.firm.nit[, firm_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.firm.nit),
+  rowsep = 1:nrow(normalized.firm.nit),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.firm.nit)
+)
+
+#Subset dataframe by Actinobacteria specific columns
+nit_by_env_act.m <-
+  nit_by_env_taxa_traits %>% dplyr::select(
+    Actinobacteria_animal,
+    Actinobacteria_human,
+    Actinobacteria_wastewater,
+    Actinobacteria_plant,
+    Actinobacteria_soil,
+    Actinobacteria_freshwater,
+    Actinobacteria_marine
+  )
+
+nit_by_env_act.m  <- as.matrix(nit_by_env_act.m)
+which(rownames(nit_by_env_act.m) == "not_detected")
+nit_by_env_act.m <-
+  nit_by_env_act.m[-39, ]#row 39 when at the gene family level 6 when pathway
+
+colSums(nit_by_env_act.m)
+rowSums(nit_by_env_act.m)
+nrow(nit_by_env_act.m)
+
+#write.xlsx(
+#nit_by_env_act.m,
+#file = "nit_act_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#remove all rows who sum to less than 6
+nit_by_env_act.m2 <-
+  nit_by_env_act.m[rowSums(nit_by_env_act.m) >= 6, ]
+nrow(nit_by_env_act.m2)
+rowSums(nit_by_env_act.m2)
+
+colSums(nit_by_env_act.m2)
+rowSums(nit_by_env_act.m2)
+nrow(nit_by_env_act.m2)
+
+#write.xlsx(
+#nit_by_env_act.m2,
+#file = "nit_act_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+nit.env.act.stand <-
+  sweep(nit_by_env_act.m2, 2, colSums(nit_by_env_act.m2), `/`)
+colSums(nit.env.act.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#nit.env.act.stand ,
+#file = "nit_act_standardized_by_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.act.nit <-
+  rowNorms(nit.env.act.stand,
+           type = "z",
+           center = TRUE,
+           scale = TRUE)
+rowSums(normalized.act.nit)
+
+#write.xlsx(
+#normalized.act.nit,
+#file = "nit_act_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_act_nit <-
+  vegdist(t(normalized.act.nit), method = 'euclidean')
+clusters.env.act.nit <- hclust(dist_env_act_nit, 'average')
+
+dist_act_nit <- vegdist(normalized.act.nit, method = 'euclidean')
+clusters.act.nit <- hclust(dist_act_nit, 'average')
+
+figure_A8_actino <- heatmap.2(
+  as.matrix(normalized.act.nit[, actino_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(12, 12),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  #sepwidth = c(0.0000001, 0.001),
+  #sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.act.nit),
+  rowsep = 1:nrow(normalized.act.nit),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.act.nit)
+)
+
+```
+
+```{r Resistance traits,include=FALSE, echo=FALSE}
+
+all_args <-
+  read_excel(
+    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx"
+  )
+
+all_args  <-
+  as.data.frame(all_args,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+args_by_env <-
+  all_args  %>% group_by(environment) %>% group_by(class) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+args_by_env <-
+  as.data.frame(args_by_env, col.names	=	TRUE)
+
+args_by_env[is.na(args_by_env)] <- 0
+
+row.names(args_by_env) = args_by_env[, 1]
+args_by_env_traits <-
+  as.data.frame((args_by_env[,-1]))
+
+args_by_taxa <-
+  all_args   %>% group_by(host_taxonomy_phylum) %>% group_by(class) %>% dplyr::count(host_taxonomy_phylum) %>% pivot_wider(names_from = host_taxonomy_phylum, values_from = n)
+
+args_by_taxa <-
+  as.data.frame(args_by_taxa, col.names	=	TRUE,	row.names	=	TRUE)
+
+args_by_taxa[is.na(args_by_taxa)] <- 0
+
+row.names(args_by_taxa) = args_by_taxa[, 1]
+args_by_taxa_traits <-
+  as.data.frame((args_by_taxa[,-1]))
+
+args_by_env_taxa <-
+  all_args  %>% group_by(phylum_by_env) %>% group_by(class) %>% dplyr::count(phylum_by_env) %>% pivot_wider(names_from = phylum_by_env, values_from = n)
+
+args_by_env_taxa <-
+  as.data.frame(args_by_env_taxa, col.names	=	TRUE)
+
+args_by_env_taxa[is.na(args_by_env_taxa)] <- 0
+
+row.names(args_by_env_taxa) = args_by_env_taxa[, 1]
+args_by_env_taxa_traits <-
+  as.data.frame((args_by_env_taxa[,-1]))
+
+args_by_mob <-
+  all_args  %>% group_by(mobility_designation) %>% group_by(class) %>% dplyr::count(mobility_designation) %>% pivot_wider(names_from = mobility_designation, values_from = n)
+
+args_by_mob <-
+  as.data.frame(args_by_mob, col.names	=	TRUE)
+
+args_by_mob[is.na(args_by_mob)] <- 0
+
+row.names(args_by_mob) = args_by_mob[, 1]
+args_by_mob_m <-
+  as.data.frame((args_by_mob[, -1]))
+
+args_by_mob_env <-
+  all_args  %>% group_by(environment) %>% group_by(mobility_designation) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+args_by_mob_env <-
+  as.data.frame(args_by_mob_env, col.names	=	TRUE)
+
+args_by_mob_env[is.na(args_by_mob_env)] <- 0
+
+row.names(args_by_mob_env) = args_by_mob_env[, 1]
+args_by_mob_env_m <-
+  as.data.frame((args_by_mob_env[, -1]))
+
+#Test the likelihood of nitrogen genes associated with mobilizable plasmids
+G.test.arg.mob.env <- GTest(args_by_mob_m, correct = "none")
+G.test.arg.mob.env
+
+#Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment
+#Figure 4A
+args_by_env_traits.m <- as.matrix(args_by_env_traits)
+colSums(args_by_env_traits.m)
+rowSums(args_by_env_traits.m)
+nrow(args_by_env_traits.m)
+
+#write.xlsx(
+#args_by_env_traits.m,
+#file = "args_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#Remove all rows who sum to less than 6
+args_by_env_traits.m2 <-
+  args_by_env_traits.m[rowSums(args_by_env_traits.m) >= 6, ]
+nrow(args_by_env_traits.m2)
+rowSums(args_by_env_traits.m2)
+
+colSums(args_by_env_traits.m2)
+rowSums(args_by_env_traits.m2)
+nrow(args_by_env_traits.m2)
+
+#write.xlsx(
+#args_by_env_traits.m2,
+#file = "args_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+args.env.stand <-
+  sweep(args_by_env_traits.m2, 2, colSums(args_by_env_traits.m2), `/`)
+colSums(args.env.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#args.env.stand,
+#file = "args_standardized_by_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.args <-
+  rowNorms(args.env.stand,
+           type = "z",
+           center = TRUE,
+           scale = TRUE)
+rowSums(normalized.args)
+
+#write.xlsx(
+#normalized.args,
+#file = "args_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+dist_env_args <- vegdist(t(normalized.args), method = 'euclidean')
+clusters.env_args <- hclust(dist_env_args, 'average')
+
+dist_args <- vegdist(normalized.args, method = 'euclidean')
+clusters.args <- hclust(dist_args, 'average')
+
+figure_4A <- heatmap.2(
+  normalized.args,
+  Rowv = as.dendrogram(clusters.args),
+  Colv = as.dendrogram(clusters.env_args),
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 36),
+  density.info = "none",
+  #key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  scale = "none",
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.args),
+  rowsep = 1:nrow(normalized.args),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10)
+)
+
+#Test the likelihood of resistance genes across environment.
+G.test.arg.env <- GTest(args_by_env_traits.m2, correct = "none")
+G.test.arg.env
+
+
+#Figure A6 - Plasmid resistance traits by host phylum and environment
+#Subset dataframe by Proteobacteria specific columns
+args_by_env_prot.m <-
+  args_by_env_taxa_traits %>% dplyr::select(
+    Proteobacteria_animal,
+    Proteobacteria_human,
+    Proteobacteria_wastewater,
+    Proteobacteria_plant,
+    Proteobacteria_soil,
+    Proteobacteria_freshwater,
+    Proteobacteria_marine
+  )
+
+args_by_env_prot.m  <- as.matrix(args_by_env_prot.m)
+
+colSums(args_by_env_prot.m)
+rowSums(args_by_env_prot.m)
+nrow(args_by_env_prot.m)
+
+#write.xlsx(
+#args_by_env_prot.m,
+#file = "args_prot_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#remove all rows who sum to less than 6
+args_by_env_prot.m2 <-
+  args_by_env_prot.m[rowSums(args_by_env_prot.m) >= 6, ]
+nrow(args_by_env_prot.m2)
+rowSums(args_by_env_prot.m2)
+
+colSums(args_by_env_prot.m2)
+rowSums(args_by_env_prot.m2)
+nrow(args_by_env_prot.m2)
+
+#write.xlsx(
+#args_by_env_prot.m2,
+#file = "args_prot_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+args.env.prot.stand <-
+  sweep(args_by_env_prot.m2, 2, colSums(args_by_env_prot.m2), `/`)
+colSums(args.env.prot.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+#args.env.prot.stand,
+#file = "args_prot_standardized_by_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+normalized.prot.args <-
+  rowNorms(
+    args.env.prot.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.prot.args)
+
+#write.xlsx(
+#normalized.prot.args,
+#file = "args_prot_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_prot_args <-
+  vegdist(t(normalized.prot.args), method = 'euclidean')
+clusters.env.prot.args <- hclust(dist_env_prot_args, 'average')
+
+dist_prot_args <-
+  vegdist(normalized.prot.args, method = 'euclidean')
+clusters.prot.args <- hclust(dist_prot_args, 'average')
+
+figure_A6_prot <- heatmap.2(
+  as.matrix(normalized.prot.args[, prot_order]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.prot.args),
+  rowsep = 1:nrow(normalized.prot.args),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.prot.args)
+  #lmat = rbind(c(0, 3, 4), c(2, 1, 0)),
+  #lwid = c(2, 4, 2)
+)
+
+#Subset dataframe by Firmicutes specific columns
+args_by_env_firm.m <-
+  args_by_env_taxa_traits %>% dplyr::select(
+    Firmicutes_animal,
+    Firmicutes_human,
+    Firmicutes_wastewater,
+    Firmicutes_plant,
+    Firmicutes_soil,
+    Firmicutes_marine
+  )
+
+args_by_env_firm.m  <- as.matrix(args_by_env_firm.m)
+
+colSums(args_by_env_firm.m)
+rowSums(args_by_env_firm.m)
+nrow(args_by_env_firm.m)
+
+#write.xlsx(
+#args_by_env_firm.m,
+#file = "args_firm_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#remove all rows who sum to less than 6
+args_by_env_firm.m2 <-
+  args_by_env_firm.m[rowSums(args_by_env_firm.m) >= 6, ]
+nrow(args_by_env_firm.m2)
+rowSums(args_by_env_firm.m2)
+
+colSums(args_by_env_firm.m2)
+rowSums(args_by_env_firm.m2)
+nrow(args_by_env_firm.m2)
+
+#write.xlsx(
+#args_by_env_firm.m2,
+#file = "args_firm_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+args.env.firm.stand <-
+  sweep(args_by_env_firm.m2, 2, colSums(args_by_env_firm.m2), `/`)
+colSums(args.env.firm.stand) #all of the columns sums should add to 1
+
+#write.xlsx(
+# args.env.firm.stand,
+# file = "args_firm_standardized_by_environment.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+# row.names = TRUE
+#)
+
+normalized.firm.args <-
+  rowNorms(
+    args.env.firm.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+rowSums(normalized.firm.args)
+
+#write.xlsx(
+#normalized.firm.args,
+#file = "args_firm_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+dist_env_firm_args <-
+  vegdist(t(normalized.firm.args), method = 'euclidean')
+clusters.env.firm.args <- hclust(dist_env_firm_args, 'average')
+
+dist_firm_args <-
+  vegdist(normalized.firm.args, method = 'euclidean')
+clusters.firm.args <- hclust(dist_firm_args, 'average')
+
+firm_order_args <- c(
+  "Firmicutes_human",
+  "Firmicutes_animal",
+  "Firmicutes_wastewater",
+  "Firmicutes_plant",
+  "Firmicutes_soil",
+  "Firmicutes_marine"
+)
+
+figure_A6_firm <- heatmap.2(
+  as.matrix(normalized.firm.args[, firm_order_args]),
+  Rowv = FALSE,
+  Colv = FALSE,
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.firm.args),
+  rowsep = 1:nrow(normalized.firm.args),
+  #cexRow = 0.5,
+  #cexCol = 0.5,
+  #lhei = c(2, 10),
+  #labRow = row.names(normalized.firm.args)
+)
+
+#Subset dataframe by Actinobacteria specific columns
+args_by_env_act.m <-
+  args_by_env_taxa_traits %>% dplyr::select(
+    Actinobacteria_animal,
+    Actinobacteria_wastewater,
+    Actinobacteria_plant,
+    Actinobacteria_soil,
+    Actinobacteria_marine
+  )
+
+args_by_env_act.m  <- as.matrix(args_by_env_act.m)
+colSums(args_by_env_act.m)
+rowSums(args_by_env_act.m)
+nrow(args_by_env_act.m)
+
+#write.xlsx(
+#args_by_env_act.m,
+#file = "args_act_counts1.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#remove all rows who sum to less than 6
+args_by_env_act.m2 <-
+  args_by_env_act.m[rowSums(args_by_env_act.m) >= 6, ]
+nrow(args_by_env_act.m2)
+rowSums(args_by_env_act.m2)
+
+colSums(args_by_env_act.m2)
+rowSums(args_by_env_act.m2)
+nrow(args_by_env_act.m2)
+
+#write.xlsx(
+#args_by_env_act.m2,
+#file = "args_act_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+####no plot was generated for resistance genes found on plasmids of Actinobacteria since there were 10 ARGs were found in 304 Actinobacteria plasmids. The resistance genes that were found  were mainly from wastewater plasmids.
+
+```
+
+
