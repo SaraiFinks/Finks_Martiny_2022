@@ -87,12 +87,14 @@ sapply(filtered.plsdb.1, class)
 filtered.plsdb.1[1:10, 1:10]
 
 #Figure A1 - Taxonomic representation of plasmid host by environment in the PLSDB dataset.
+
 summary(filtered.plsdb.1)
 summary(filtered.plsdb.1$environment)
 Hmisc::describe(filtered.plsdb.1)
 attach(filtered.plsdb.1)
 
-#Calculate the counts/percentages of plasmids by host-taxonomy given environment
+#Calculate the counts/percentages of plasmids by host-taxonomy given environment.
+
 filtered.plsdb.1$taxon_phylum_name <-
   factor(
     filtered.plsdb.1$taxon_phylum_name,
@@ -162,7 +164,8 @@ figure_A1 <-
 
 plot(figure_A1)
 
-#Calculate mean plasmid size (kbp) across environments
+#Calculate mean plasmid size (kbp) across environments.
+
 means.env <-
   aggregate(
     x = filtered.plsdb.1$size_kb,
@@ -182,7 +185,8 @@ means.env <-
 #row.names = TRUE
 #)
 
-#Calculate mean plasmid size (kbp) by host-taxonomy
+#Calculate mean plasmid size (kbp) by host-taxonomy.
+
 means.taxonomy <-
   aggregate(
     x = filtered.plsdb.1$size_kb,
@@ -200,7 +204,8 @@ means.env <-
 #row.names = TRUE
 #)
 
-#Calculate mean plasmid size (kbp) by host-taxonomy given environment
+#Calculate mean plasmid size (kbp) by host-taxonomy given environment.
+
 means.taxa.env <-
   aggregate(
     x = filtered.plsdb.1$size_kb,
@@ -224,6 +229,7 @@ means.taxa.env <-
 #Figures 1 and A2 - plasmid size variation across environment, host-taxonomy, and host-taxonomy given environment.
 
 #Non-parametric tests, assumptions for ANOVA not met.
+
 kw.size.env <-
   kruskal.test(plasmid_size_log10_trans ~ environment,
                data = filtered.plsdb.1)
@@ -266,6 +272,7 @@ kw.size.proteobacteria.env
 filtered.plsdb.1 %>% kruskal_effsize(plasmid_size_log10_trans ~ phylum_by_env)
 
 #Post-hoc comparisons (non-parametric)
+
 WT.size.env <-
   pairwise.wilcox.test(
     filtered.plsdb.1$plasmid_size_log10_trans,
@@ -321,7 +328,8 @@ WT.taxonomy.env.tidy <- as.data.frame(WT.taxonomy.env.tidy)
 #row.names = TRUE
 #)
 
-#Figure 1 - Plasmid size distributions vary significantly by environment
+#Figure 1 - Plasmid size distributions vary significantly by environment.
+
 c07a <- c("#7769d6",
           "#b861b6",
           "#eda4ba",
@@ -382,6 +390,7 @@ figure_1 <-
 plot(figure_1)
 
 #Figure A2 - Plasmid size distributions vary significantly by host taxonomy and environment
+
 c10a <- c(
   "#56ae6c",
   "#cc5b56",
@@ -523,6 +532,7 @@ figure_A2 <-
 plot(figure_A2)
 
 #Plasmid coding density by environment and host-taxonomy
+
 kw.density.env <-
   kruskal.test(coding_ratio ~ environment,
                data = filtered.plsdb.1)
@@ -545,6 +555,7 @@ kw.coding.taxonomy.env
 filtered.plsdb.1 %>% kruskal_effsize(coding_ratio ~ phylum_by_env)
 
 #Testing the correlation between plasmid size and coding density
+
 cod_by_env <-
   filtered.plsdb.1  %>% group_by(coding_ratio) %>% group_by(size_kb) %>% dplyr::count(coding_ratio)
 
@@ -557,6 +568,7 @@ density_size.corr <-
 density_size.corr
 
 #Calculate the mean plasmid coding density environment
+
 mean.env <-
   ddply(filtered.plsdb.1,
         .(environment),
@@ -565,10 +577,12 @@ mean.env <-
 mean.env
 
 #Calculate the grand mean plasmid coding density environment
+
 mean.env %>%
   mutate(grand.mean = mean(mean))
 
 #Figure A3 - Plasmid coding density by environment
+
 figure_A3 <-
   ggplot(data = filtered.plsdb.1,
          aes(
@@ -641,6 +655,7 @@ plot(figure_A3)
 ```
 
 ```{r Plasmids mobility traits, include=FALSE, echo=FALSE}
+
 all_mob <-
   read_excel(
     "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
@@ -652,7 +667,8 @@ all_mob  <-
                 col.names	=	TRUE,
                 row.names	=	TRUE)
 
-#Figure 5 - The proportion of MOB family relaxases by plasmid host-taxonomy
+#Figure 5 - The proportion of MOB family relaxases by plasmid host-taxonomy.
+
 mob_by_taxa <-
   all_mob  %>% group_by(host_taxonomy_phylum) %>% group_by(relaxase_family_name) %>% dplyr::count(host_taxonomy_phylum) %>% pivot_wider(names_from = host_taxonomy_phylum, values_from = n)
 
@@ -669,6 +685,7 @@ mob_by_taxa_traits <- mob_by_taxa_traits[-12, ]
 colSums(mob_by_taxa_traits)
 
 #Combine MOBP family relaxase types
+
 mob_by_taxa_traits['MOBP1',]
 mob_by_taxa_traits['MOBP2',]
 mob_by_taxa_traits['MOBP3',]
@@ -680,7 +697,8 @@ which(rownames(mob_by_taxa_traits) == "MOBP1")
 mob_by_taxa_traits <- mob_by_taxa_traits[-(6:8), ]
 rowSums(mob_by_taxa_traits)
 
-#Remember to remove phyla with column sums equal to zero##
+#Remember to remove phyla with column sums equal to zero.
+
 apply(mob_by_taxa_traits, 1, sum)
 mob_by_taxa_traits.t <- t(mob_by_taxa_traits)
 rowSums(mob_by_taxa_traits.t)
@@ -737,7 +755,8 @@ figure_5 <-
 
 plot(figure_5)
 
-#Figure A4 - The proportion of MOB family of relaxases by environment
+#Figure A4 - The proportion of MOB family relaxases by environment.
+
 mob_by_env_all <-
   filtered.plsdb.1  %>% group_by(environment) %>% group_by(mobility_designation) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
 
@@ -756,6 +775,7 @@ mob_by_env_traits <-
 mob_by_env_traits <- mob_by_env_traits[-12, ]
 
 #Combine MOBP family relaxase types
+
 mob_by_env_traits['MOBP1',]
 mob_by_env_traits['MOBP2',]
 mob_by_env_traits['MOBP3',]
@@ -767,7 +787,8 @@ which(rownames(mob_by_env_traits) == "MOBP1")
 mob_by_env_traits <- mob_by_env_traits[-(6:8), ]
 rowSums(mob_by_env_traits)
 
-##Remember to remove phyla with column sums equal to zero##
+#Remember to remove phyla with column sums equal to zero.
+
 apply(mob_by_env_traits, 1, sum)
 mob_by_env_traits.t <- t(mob_by_env_traits)
 rowSums(mob_by_env_traits.t)
@@ -906,11 +927,13 @@ row.names(cogs_by_mob_env) = cogs_by_mob_env[, 1]
 cogs_by_mob_env_m <-
   as.data.frame((cogs_by_mob_env[,-1]))
 
-#Test the likelihood of cogs associated with mobilizable plasmids
+#Test the likelihood of cogs associated with mobilizable plasmids.
+
 G.test.cog.env.mob <- GTest(cogs_by_mob_env_m, correct = "none")
 G.test.cog.env.mob
 
-#Figure 2 - Cumulative COG richness of plasmids by environment
+#Figure 2 - Cumulative COG richness of plasmids by environment.
+
 cog_by_env.rare <-
   all_cogs  %>% group_by(environment) %>% group_by(COG20_FUNCTION_ACC1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
 
@@ -945,6 +968,7 @@ figure_2 <-
   )
 
 #Figure 3 - Plasmid COG functions by environment
+
 cog_by_env.cat_traits.m <- as.matrix(cog_by_env_traits)
 which(rownames(cog_by_env.cat_traits.m) == "not_detected")
 cog_by_env.cat_traits.m <- cog_by_env.cat_traits.m[-15,]
@@ -962,6 +986,7 @@ rowSums(cog_by_env.cat_traits.m)
 nrow(cog_by_env.cat_traits.m)
 
 #Remove all rows who sum to less than 6 (i.e., remove rare COG)
+
 cog_by_env.cat_traits.m2 <-
   cog_by_env.cat_traits.m[rowSums(cog_by_env.cat_traits.m) >= 6, ]
 nrow(cog_by_env.cat_traits.m)
@@ -979,7 +1004,8 @@ nrow(cog_by_env.cat_traits.m2)
 #row.names = TRUE
 #)
 
-#Combine both R + S categories (which have COG functions that are wither general/unknown)
+#Combine both R + S categories (which have COG functions that are either general/unknown)
+
 cog_by_env.cat_traits.m2['R', ]
 cog_by_env.cat_traits.m2['S', ]
 cog_by_env.cat_traits.m2 = rbind(cog_by_env.cat_traits.m2,
@@ -1015,7 +1041,8 @@ rowSums(normalized.cog)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+
 dist_env_cog <- vegdist(t(normalized.cog), method = 'euclidean')
 clusters.env.cog <- hclust(dist_env_cog, 'ward.D')
 
@@ -1054,12 +1081,14 @@ figure_3 <- heatmap.2(
 )
 
 #Test the likelihood of COG categories across environment
+
 G.test.cog.env <- GTest(cog_by_env.cat_traits.m2, correct = "none")
 G.test.cog.env
 
 #Figure A5 - Plasmid COG categories by host phylum and environment
 
 #Subset dataframe by Proteobacteria specific columns
+
 cog_by_env_prot.m <-
   cog_by_env_taxa_traits %>% dplyr::select(
     Proteobacteria_animal,
@@ -1087,7 +1116,8 @@ colSums(cog_by_env_prot.m)
 rowSums(cog_by_env_prot.m)
 nrow(cog_by_env_prot.m)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6.
+
 cog_by_env_prot.m2 <-
   cog_by_env_prot.m[rowSums(cog_by_env_prot.m) >= 6, ]
 nrow(cog_by_env_prot.m2)
@@ -1097,7 +1127,8 @@ colSums(cog_by_env_prot.m2)
 rowSums(cog_by_env_prot.m2)
 nrow(cog_by_env_prot.m2)
 
-#combine both R + S categories
+#Combine both R + S categories
+
 cog_by_env_prot.m2['R', ]
 cog_by_env_prot.m2['S', ]
 cog_by_env_prot.m2 = rbind(cog_by_env_prot.m2, colSums(cog_by_env_prot.m2[c("R", "S"),], na.rm = T))
@@ -1145,7 +1176,8 @@ rowSums(normalized.prot.cog)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix.
+
 dist_env_prot_cog <-
   vegdist(t(normalized.prot.cog), method = 'euclidean')
 clusters_env_prot_cog <- hclust(dist_env_prot_cog, 'average')
@@ -1189,16 +1221,18 @@ figure_A5_prot = heatmap.2(
   colsep = 1:ncol(normalized.prot.cog),
   rowsep = 1:nrow(normalized.prot.cog),
   #cexRow = 0.5,
- # cexCol = 0.5,
+  #cexCol = 0.5,
   ##lhei = c(2, 10),
   #labRow = row.names(normalized.prot.cog)
 )
 
 #Test the likelihood of COG categories across environment when controlling for host-taxonomy
+
 G.test.cog.env.prot <- GTest(cog_by_env_prot.m2, correct = "none")
 G.test.cog.env.prot
 
 #Subset dataframe by Firmicutes specific columns
+
 cog_by_env_firm.m <-
   cog_by_env_taxa_traits %>% dplyr::select(
     Firmicutes_animal,
@@ -1226,7 +1260,7 @@ colSums(cog_by_env_firm.m)
 rowSums(cog_by_env_firm.m)
 nrow(cog_by_env_firm.m)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6
 cog_by_env_firm.m2 <-
   cog_by_env_firm.m[rowSums(cog_by_env_firm.m) >= 6, ]
 nrow(cog_by_env_firm.m2)
@@ -1236,7 +1270,8 @@ colSums(cog_by_env_firm.m2)
 rowSums(cog_by_env_firm.m2)
 nrow(cog_by_env_firm.m2)
 
-#combine both R + S categories
+#Combine both R + S categories
+
 cog_by_env_firm.m2['R', ]
 cog_by_env_firm.m2['S', ]
 cog_by_env_firm.m2 = rbind(cog_by_env_firm.m2, colSums(cog_by_env_firm.m2[c("R", "S"),], na.rm = T))
@@ -1284,7 +1319,8 @@ rowSums(normalized.firm.cog)
   #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+
 dist_env_firm_cog <-
   vegdist(t(normalized.firm.cog), method = 'euclidean')
 clusters_env_firm_cog <- hclust(dist_env_firm_cog, 'average')
@@ -1334,10 +1370,12 @@ figure_A5_firm = heatmap.2(
 )
 
 #Test the likelihood of COG categories across environment when controlling for host-taxonomy
+
 G.test.cog.env.firm <- GTest(cog_by_env_firm.m2, correct = "none")
 G.test.cog.env.firm
 
-#subset dataframe by Actinobacteria specific columns
+#Subset dataframe by Actinobacteria specific columns
+
 cog_by_env_act.m <-
   cog_by_env_taxa_traits %>% dplyr::select(
     Actinobacteria_animal,
@@ -1365,7 +1403,8 @@ colSums(cog_by_env_act.m)
 rowSums(cog_by_env_act.m)
 nrow(cog_by_env_act.m)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6
+
 cog_by_env_act.m2 <-
   cog_by_env_act.m[rowSums(cog_by_env_act.m) >= 6, ]
 nrow(cog_by_env_act.m2)
@@ -1375,7 +1414,8 @@ colSums(cog_by_env_act.m2)
 rowSums(cog_by_env_act.m2)
 nrow(cog_by_env_act.m2)
 
-#combine both R + S categories
+#Combine both R + S categories
+
 cog_by_env_act.m2['R', ]
 cog_by_env_act.m2['S', ]
 cog_by_env_act.m2 = rbind(cog_by_env_act.m2, colSums(cog_by_env_act.m2[c("R", "S"),], na.rm = T))
@@ -1420,7 +1460,8 @@ rowSums(normalized.act.cog)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+
 dist_env_act_cog <-
   vegdist(t(normalized.act.cog), method = 'euclidean')
 clusters_env_act_cog <- hclust(dist_env_act_cog, 'average')
@@ -1470,6 +1511,7 @@ figure_A5_actino = heatmap.2(
 )
 
 #Test the likelihood of COG categories across environment when controlling for host-taxonomy
+
 G.test.cog.env.act <- GTest(cog_by_env_act.m2, correct = "none")
 G.test.cog.env.act
 
@@ -1539,7 +1581,8 @@ row.names(cazy_by_mob) = cazy_by_mob[, 1]
 cazy_by_mob_m <-
   as.data.frame((cazy_by_mob[, -1]))
 
-#Test the likelihood of CAZymes associated with mobilizable plasmids
+#Test the likelihood of CAZymes associated with mobilizable plasmids.
+
 G.test.cazy.mob.env <- GTest(cazy_by_mob_m, correct = "none")
 G.test.cazy.mob.env
 
@@ -1551,9 +1594,10 @@ G.test.cazy.mob.env
 #row.names = TRUE
 #)
 
-#Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment
+#Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment.
 
 #Figure 4B
+
 cazy_by_env_traits.m <- as.matrix(cazy_by_env_traits)
 which(rownames(cazy_by_env_traits.m) == "not_detected")
 cazy_by_env_traits.m <-
@@ -1571,7 +1615,8 @@ colSums(cazy_by_env_traits.m)
 rowSums(cazy_by_env_traits.m)
 nrow(cazy_by_env_traits.m)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6.
+
 cazy_by_env_traits.m2 <-
   cazy_by_env_traits.m[rowSums(cazy_by_env_traits.m) >= 6,]
 nrow(cazy_by_env_traits.m2)
@@ -1612,7 +1657,8 @@ rowSums(normalized.cazy)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+
 dist_env_cazy <- vegdist(t(normalized.cazy), method = 'euclidean')
 clusters_env_cazy <- hclust(dist_env_cazy, 'average')
 
@@ -1657,6 +1703,7 @@ G.test.cazy.env
 #Figure A7 - Plasmid carbon degrading traits by host phylum and environment.
 
 #Subset dataframe by Proteobacteria specific columns
+
 cazy_by_env_prot.m <-
   cazy_by_env_taxa_traits %>% dplyr::select(
     Proteobacteria_animal,
@@ -1685,7 +1732,8 @@ colSums(cazy_by_env_prot.m)
 rowSums(cazy_by_env_prot.m)
 nrow(cazy_by_env_prot.m)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6.
+
 cazy_by_env_prot.m2 <-
   cazy_by_env_prot.m[rowSums(cazy_by_env_prot.m) >= 6,]
 nrow(cazy_by_env_prot.m2)
@@ -1728,7 +1776,8 @@ rowSums(normalized.prot.cazy)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix.
+
 dist_env_prot_cazy <-
   vegdist(t(normalized.prot.cazy), method = 'euclidean')
 clusters_env_prot_cazy <- hclust(dist_env_prot_cazy, 'average')
@@ -1767,7 +1816,8 @@ figure_A7_prot <- heatmap.2(
   #labRow = row.names(normalized.prot.cazy)
 )
 
-#subset dataframe by Firmicutes specific columns
+#Subset dataframe by Firmicutes specific columns.
+
 cazy_by_env_firm.m <-
   cazy_by_env_taxa_traits %>% dplyr::select(
     Firmicutes_animal,
@@ -1795,7 +1845,8 @@ colSums(cazy_by_env_firm.m)
 rowSums(cazy_by_env_firm.m)
 nrow(cazy_by_env_firm.m)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6.
+
 cazy_by_env_firm.m2 <-
   cazy_by_env_firm.m[rowSums(cazy_by_env_firm.m) >= 6,]
 nrow(cazy_by_env_firm.m2)
@@ -1838,7 +1889,8 @@ rowSums(normalized.firm.cazy)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix.
+
 dist_env_firm_cazy <-
   vegdist(t(normalized.firm.cazy), method = 'euclidean')
 clusters_env_firm_cazy <- hclust(dist_env_firm_cazy, 'average')
@@ -1877,7 +1929,8 @@ figure_A7_firm <- heatmap.2(
   #labRow = row.names(normalized.firm.cazy)
 )
 
-#subset dataframe by Actinobacteria specific columns
+#Subset dataframe by Actinobacteria specific columns
+
 cazy_by_env_act.m <-
   cazy_by_env_taxa_traits %>% dplyr::select(
     Actinobacteria_animal,
@@ -1905,7 +1958,8 @@ colSums(cazy_by_env_act.m)
 rowSums(cazy_by_env_act.m)
 nrow(cazy_by_env_act.m)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6.
+
 cazy_by_env_act.m2 <-
   cazy_by_env_act.m[rowSums(cazy_by_env_act.m) >= 6,]
 nrow(cazy_by_env_act.m2)
@@ -1948,7 +2002,8 @@ rowSums(normalized.act.cazy)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix.
+
 dist_env_act_cazy <-
   vegdist(t(normalized.act.cazy), method = 'euclidean')
 clusters_env_act_cazy <- hclust(dist_env_act_cazy, 'average')
@@ -2066,7 +2121,9 @@ G.test.nit.mob.env <- GTest(nit_by_mob.m, correct = "none")
 G.test.nit.mob.env
 
 #Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment.
+
 #Figure 4C
+
 nit_by_env_traits.m <- as.matrix(nit_by_env_traits)
 which(rownames(nit_by_env_traits.m) == "not_detected")
 nit_by_env_traits.m <-
@@ -2083,7 +2140,9 @@ nrow(nit_by_env_traits.m)
 #col.names = TRUE,
 #row.names = TRUE
 #)
-#remove all rows who sum to less than 6
+
+#Remove all rows who sum to less than 6.
+
 nit_by_env_traits.m2 <-
   nit_by_env_traits.m[rowSums(nit_by_env_traits.m) >= 6, ]
 nrow(nit_by_env_traits.m2)
@@ -2128,7 +2187,7 @@ rowSums(normalized.nit)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
 dist_env_nit <- vegdist(t(normalized.nit), method = 'euclidean')
 clusters.env_nit <- hclust(dist_env_nit, 'average')
 
@@ -2170,10 +2229,10 @@ figure_4C <- heatmap.2(
 G.test.nit.env <- GTest(nit_by_env_traits.m2, correct = "none")
 G.test.nit.env
 
-
 #Figure A8 - Plasmid nitrogen cycling traits by host phylum and environment.
 
-#Subset dataframe by Proteobacteria specific columns
+#Subset dataframe by Proteobacteria specific columns.
+
 nit_by_env_prot.m <-
   nit_by_env_taxa_traits %>% dplyr::select(
     Proteobacteria_animal,
@@ -2201,7 +2260,8 @@ nrow(nit_by_env_prot.m)
 #row.names = TRUE
 #)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6.
+
 nit_by_env_prot.m2 <-
   nit_by_env_prot.m[rowSums(nit_by_env_prot.m) >= 6, ]
 nrow(nit_by_env_prot.m2)
@@ -2248,7 +2308,8 @@ rowSums(normalized.prot.nit)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+
 dist_env_prot_nit <-
   vegdist(t(normalized.prot.nit), method = 'euclidean')
 clusters.env.prot.nit <- hclust(dist_env_prot_nit, 'average')
@@ -2286,7 +2347,8 @@ figure_A8_prot <- heatmap.2(
   #labRow = row.names(normalized.prot.nit)
 )
 
-#subset dataframe by Firmicutes specific columns
+#Subset dataframe by Firmicutes specific columns.
+
 nit_by_env_firm.m <-
   nit_by_env_taxa_traits %>% dplyr::select(
     Firmicutes_animal,
@@ -2314,7 +2376,7 @@ nrow(nit_by_env_firm.m)
 #row.names = TRUE
 #)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6
 nit_by_env_firm.m2 <-
   nit_by_env_firm.m[rowSums(nit_by_env_firm.m) >= 6, ]
 nrow(nit_by_env_firm.m2)
@@ -2361,7 +2423,8 @@ rowSums(normalized.firm.nit)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+
 dist_env_firm_nit <-
   vegdist(t(normalized.firm.nit), method = 'euclidean')
 clusters.env.firm.nit <- hclust(dist_env_firm_nit, 'average')
@@ -2399,7 +2462,8 @@ figure_A8_firm <- heatmap.2(
   #labRow = row.names(normalized.firm.nit)
 )
 
-#Subset dataframe by Actinobacteria specific columns
+#Subset dataframe by Actinobacteria specific columns.
+
 nit_by_env_act.m <-
   nit_by_env_taxa_traits %>% dplyr::select(
     Actinobacteria_animal,
@@ -2428,7 +2492,8 @@ nrow(nit_by_env_act.m)
 #row.names = TRUE
 #)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6.
+
 nit_by_env_act.m2 <-
   nit_by_env_act.m[rowSums(nit_by_env_act.m) >= 6, ]
 nrow(nit_by_env_act.m2)
@@ -2472,7 +2537,9 @@ rowSums(normalized.act.nit)
 #col.names = TRUE,
 #row.names = TRUE
 #)
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix.
+
 dist_env_act_nit <-
   vegdist(t(normalized.act.nit), method = 'euclidean')
 clusters.env.act.nit <- hclust(dist_env_act_nit, 'average')
@@ -2589,7 +2656,9 @@ G.test.arg.mob.env <- GTest(args_by_mob_m, correct = "none")
 G.test.arg.mob.env
 
 #Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment
+
 #Figure 4A
+
 args_by_env_traits.m <- as.matrix(args_by_env_traits)
 colSums(args_by_env_traits.m)
 rowSums(args_by_env_traits.m)
@@ -2603,7 +2672,8 @@ nrow(args_by_env_traits.m)
 #row.names = TRUE
 #)
 
-#Remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6.
+
 args_by_env_traits.m2 <-
   args_by_env_traits.m[rowSums(args_by_env_traits.m) >= 6, ]
 nrow(args_by_env_traits.m2)
@@ -2648,7 +2718,8 @@ rowSums(normalized.args)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by cogs(rows) make a Euclidean distance matrix.
+
 dist_env_args <- vegdist(t(normalized.args), method = 'euclidean')
 clusters.env_args <- hclust(dist_env_args, 'average')
 
@@ -2690,9 +2761,9 @@ figure_4A <- heatmap.2(
 G.test.arg.env <- GTest(args_by_env_traits.m2, correct = "none")
 G.test.arg.env
 
+#Figure A6 - Plasmid resistance traits by host phylum and environment.
 
-#Figure A6 - Plasmid resistance traits by host phylum and environment
-#Subset dataframe by Proteobacteria specific columns
+#Subset dataframe by Proteobacteria specific columns.
 args_by_env_prot.m <-
   args_by_env_taxa_traits %>% dplyr::select(
     Proteobacteria_animal,
@@ -2718,7 +2789,7 @@ nrow(args_by_env_prot.m)
 #row.names = TRUE
 #)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6
 args_by_env_prot.m2 <-
   args_by_env_prot.m[rowSums(args_by_env_prot.m) >= 6, ]
 nrow(args_by_env_prot.m2)
@@ -2765,7 +2836,7 @@ rowSums(normalized.prot.args)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix.
 dist_env_prot_args <-
   vegdist(t(normalized.prot.args), method = 'euclidean')
 clusters.env.prot.args <- hclust(dist_env_prot_args, 'average')
@@ -2831,7 +2902,7 @@ nrow(args_by_env_firm.m)
 #row.names = TRUE
 #)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6
 args_by_env_firm.m2 <-
   args_by_env_firm.m[rowSums(args_by_env_firm.m) >= 6, ]
 nrow(args_by_env_firm.m2)
@@ -2878,7 +2949,7 @@ rowSums(normalized.firm.args)
 #row.names = TRUE
 #)
 
-#then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
+#Then using the standardized matrix, first by env (columns) then by rows make a Euclidean distance matrix
 dist_env_firm_args <-
   vegdist(t(normalized.firm.args), method = 'euclidean')
 clusters.env.firm.args <- hclust(dist_env_firm_args, 'average')
@@ -2949,7 +3020,7 @@ nrow(args_by_env_act.m)
 #row.names = TRUE
 #)
 
-#remove all rows who sum to less than 6
+#Remove all rows who sum to less than 6
 args_by_env_act.m2 <-
   args_by_env_act.m[rowSums(args_by_env_act.m) >= 6, ]
 nrow(args_by_env_act.m2)
@@ -2966,8 +3037,7 @@ nrow(args_by_env_act.m2)
 #col.names = TRUE,
 #row.names = TRUE
 #)
-####no plot was generated for resistance genes found on plasmids of Actinobacteria since there were 10 ARGs were found in 304 Actinobacteria plasmids. The resistance genes that were found  were mainly from wastewater plasmids.
+
+####No plot was generated for resistance genes found on plasmids of Actinobacteria since there were 10 ARGs were found in 304 Actinobacteria plasmids. The resistance genes that were found  were mainly from wastewater plasmids####
 
 ```
-
-
