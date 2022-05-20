@@ -1,0 +1,80 @@
+PERMDISP
+Distance-based test for homogeneity of multivariate dispersions
+
+Resemblance worksheet
+Name: nit.phyl.env.dist.abund
+Data type: Distance
+Selection: All
+
+Group factor: environment
+Number of permutations: 999
+
+Number of groups: 7
+Number of samples: 26
+
+DEVIATIONS FROM CENTROID
+F: 2.7688  df1: 6  df2: 19
+P(perm): 0.278
+
+PAIRWISE COMPARISONS
+Groups	        t	P(perm)				
+(freshwater,marine)	  0.19936	      1				
+(freshwater,human)	   1.7972	  0.226				
+(freshwater,soil)	   1.7634	  0.275				
+(freshwater,animal)	   2.2891	   0.14				
+(freshwater,plant)	    4.839	 9.9E-2				
+(freshwater,wastewater)	4.7991E-2	      1				
+(marine,human)	   1.5406	  0.444				
+(marine,soil)	   1.2347	  0.464				
+(marine,animal)	   1.9848	  0.223				
+(marine,plant)	   3.2611	  0.103				
+(marine,wastewater)	  0.15037	      1				
+(human,soil)	  0.79603	  0.617				
+(human,animal)	  0.40689	  0.713				
+(human,plant)	  0.79289	  0.595				
+(human,wastewater)	   1.7325	  0.324				
+(soil,animal)	   1.2866	  0.342				
+(soil,plant)	   2.4531	  0.186				
+(soil,wastewater)	   1.6012	  0.296				
+(animal,plant)	  0.40184	  0.776				
+(animal,wastewater)	   2.2097	  0.174				
+(plant,wastewater)	   4.2359	  0.114				
+
+MEANS AND STANDARD ERRORS
+Group	Size	Average	     SE
+freshwater	   3	 4.0493	0.25284
+marine	   3	 4.1506	0.44074
+human	   5	 5.2855	0.49694
+soil	   4	 4.7886	0.30588
+animal	   5	 5.5658	0.47718
+plant	   3	 5.8333	0.26832
+wastewater	   3	 4.0688	0.31862
+
+Sample	Group	Distance
+Actinobacteria_freshwater	freshwater	  3.5559
+Proteobacteria_freshwater	freshwater	  4.3918
+Firmicutes_freshwater	freshwater	  4.2003
+Actinobacteria_marine	marine	  3.4014
+Proteobacteria_marine	marine	  4.9274
+Firmicutes_marine	marine	   4.123
+Bacteroidetes_human	human	  4.6166
+Proteobacteria_human	human	  4.9281
+Firmicutes_human	human	  7.2141
+Spirochaetes_human	human	  5.1784
+Actinobacteria_human	human	  4.4901
+Bacteroidetes_soil	soil	   5.686
+Proteobacteria_soil	soil	  4.4829
+Actinobacteria_soil	soil	  4.3364
+Firmicutes_soil	soil	  4.6489
+Proteobacteria_animal	animal	  6.5909
+Firmicutes_animal	animal	  5.9644
+Actinobacteria_animal	animal	  6.2322
+Spirochaetes_animal	animal	  3.9225
+Bacteroidetes_animal	animal	   5.119
+Proteobacteria_plant	plant	  6.3388
+Actinobacteria_plant	plant	  5.4246
+Firmicutes_plant	plant	  5.7366
+Proteobacteria_wastewater	wastewater	  4.5697
+Firmicutes_wastewater	wastewater	  4.1597
+Actinobacteria_wastewater	wastewater	  3.4772
+

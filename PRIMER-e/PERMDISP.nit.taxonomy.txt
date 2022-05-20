@@ -1,0 +1,67 @@
+PERMDISP
+Distance-based test for homogeneity of multivariate dispersions
+
+Resemblance worksheet
+Name: nit.phyl.env.dist.abund
+Data type: Distance
+Selection: All
+
+Group factor: taxonomy
+Number of permutations: 999
+
+Number of groups: 5
+Number of samples: 26
+
+DEVIATIONS FROM CENTROID
+F: 3.3606  df1: 4  df2: 21
+P(perm): 0.2
+
+PAIRWISE COMPARISONS
+Groups	        t	P(perm)				
+(Actinobacteria,Bacteroidetes)	1.5358E-2	  0.981				
+(Actinobacteria,Proteobacteria)	   1.5801	  0.232				
+(Actinobacteria,Firmicutes)	   2.1504	 8.5E-2				
+(Actinobacteria,Spirochaetes)	   1.7515	  0.451				
+(Bacteroidetes,Proteobacteria)	    1.303	   0.53				
+(Bacteroidetes,Firmicutes)	   1.8365	  0.265				
+(Bacteroidetes,Spirochaetes)	   21.133	 8.9E-2				
+(Proteobacteria,Firmicutes)	  0.46678	   0.67				
+(Proteobacteria,Spirochaetes)	   2.5647	 3.7E-2				
+(Firmicutes,Spirochaetes)	   3.1115	 3.2E-2				
+
+MEANS AND STANDARD ERRORS
+Group	Size	Average	       SE
+Actinobacteria	   7	  4.321	  0.39262
+Bacteroidetes	   3	 4.3305	4.9854E-2
+Proteobacteria	   7	 5.2732	  0.45717
+Firmicutes	   7	 5.5644	  0.42449
+Spirochaetes	   2	 2.9704	        0
+
+Sample	Group	Distance
+Actinobacteria_freshwater	Actinobacteria	   3.642
+Actinobacteria_marine	Actinobacteria	  3.5984
+Actinobacteria_soil	Actinobacteria	  4.1017
+Actinobacteria_plant	Actinobacteria	  5.1704
+Actinobacteria_animal	Actinobacteria	  6.2422
+Actinobacteria_human	Actinobacteria	  4.1759
+Actinobacteria_wastewater	Actinobacteria	  3.3163
+Bacteroidetes_human	Bacteroidetes	  4.3848
+Bacteroidetes_soil	Bacteroidetes	  4.3758
+Bacteroidetes_animal	Bacteroidetes	   4.231
+Proteobacteria_animal	Proteobacteria	  5.7573
+Proteobacteria_human	Proteobacteria	  4.4114
+Proteobacteria_marine	Proteobacteria	  4.7986
+Proteobacteria_plant	Proteobacteria	  7.6218
+Proteobacteria_soil	Proteobacteria	  3.9136
+Proteobacteria_freshwater	Proteobacteria	  4.8869
+Proteobacteria_wastewater	Proteobacteria	  5.5226
+Firmicutes_animal	Firmicutes	  5.9385
+Firmicutes_human	Firmicutes	  7.7973
+Firmicutes_plant	Firmicutes	  5.6274
+Firmicutes_soil	Firmicutes	  4.7746
+Firmicutes_freshwater	Firmicutes	  5.4759
+Firmicutes_marine	Firmicutes	  4.3515
+Firmicutes_wastewater	Firmicutes	  4.9854
+Spirochaetes_animal	Spirochaetes	  2.9704
+Spirochaetes_human	Spirochaetes	  2.9704
+

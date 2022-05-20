@@ -1,0 +1,68 @@
+PERMDISP
+Distance-based test for homogeneity of multivariate dispersions
+
+Resemblance worksheet
+Name: mob.phyl.env.dist.abund
+Data type: Distance
+Selection: All
+
+Group factor: taxonomy
+Number of permutations: 999
+
+Number of groups: 5
+Number of samples: 27
+
+DEVIATIONS FROM CENTROID
+F: 8.7826  df1: 4  df2: 22
+P(perm): 0.004
+
+PAIRWISE COMPARISONS
+Groups	     t	P(perm)				
+(Bacteroidetes,Actinobacteria)	3.0183	   1E-2				
+(Bacteroidetes,Firmicutes)	1.3021	  0.386				
+(Bacteroidetes,Proteobacteria)	2.3598	 3.3E-2				
+(Bacteroidetes,Spirochaetes)	1.9383	  0.178				
+(Actinobacteria,Firmicutes)	4.4964	   1E-3				
+(Actinobacteria,Proteobacteria)	2.0947	 7.8E-2				
+(Actinobacteria,Spirochaetes)	1.5355	  0.254				
+(Firmicutes,Proteobacteria)	3.9017	   1E-3				
+(Firmicutes,Spirochaetes)	2.3853	  0.253				
+(Proteobacteria,Spirochaetes)	6.7637	  0.101				
+
+MEANS AND STANDARD ERRORS
+Group	Size	Average	       SE
+Bacteroidetes	   5	 2.4085	  0.50728
+Actinobacteria	   7	0.92455	  0.21288
+Firmicutes	   7	 3.3596	  0.49797
+Proteobacteria	   7	 1.3959	7.2969E-2
+Spirochaetes	   1	      0	Undefined
+
+Sample	Group	Distance
+Bacteroidetes_animal	Bacteroidetes	  1.2123
+Bacteroidetes_human	Bacteroidetes	  1.3016
+Bacteroidetes_soil	Bacteroidetes	  2.9603
+Bacteroidetes_freshwater	Bacteroidetes	  3.8554
+Bacteroidetes_plant	Bacteroidetes	  2.7129
+Actinobacteria_animal	Actinobacteria	 0.28628
+Actinobacteria_human	Actinobacteria	 0.87224
+Actinobacteria_marine	Actinobacteria	  0.2106
+Actinobacteria_plant	Actinobacteria	  1.8145
+Actinobacteria_soil	Actinobacteria	 0.90014
+Actinobacteria_freshwater	Actinobacteria	  1.0428
+Actinobacteria_wastewater	Actinobacteria	  1.3452
+Firmicutes_animal	Firmicutes	  6.0115
+Firmicutes_freshwater	Firmicutes	  3.5449
+Firmicutes_human	Firmicutes	  2.0654
+Firmicutes_plant	Firmicutes	  2.6284
+Firmicutes_soil	Firmicutes	  3.8543
+Firmicutes_wastewater	Firmicutes	  2.5649
+Firmicutes_marine	Firmicutes	  2.8478
+Proteobacteria_animal	Proteobacteria	  1.3704
+Proteobacteria_freshwater	Proteobacteria	   1.653
+Proteobacteria_human	Proteobacteria	  1.3915
+Proteobacteria_marine	Proteobacteria	  1.0181
+Proteobacteria_plant	Proteobacteria	  1.3829
+Proteobacteria_soil	Proteobacteria	  1.4941
+Proteobacteria_wastewater	Proteobacteria	  1.4616
+Spirochaetes_human	Spirochaetes	       0
+

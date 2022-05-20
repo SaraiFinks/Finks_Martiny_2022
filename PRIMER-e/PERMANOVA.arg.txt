@@ -1,0 +1,46 @@
+PERMANOVA
+Permutational MANOVA
+
+Resemblance worksheet
+Name: args.phyl.env.dist.abund
+Data type: Distance
+Selection: All
+
+Sums of squares type: Type III (partial)
+Fixed effects sum to zero for mixed terms
+Permutation method: Permutation of residuals under a reduced model
+Number of permutations: 999
+
+Factors
+Name	Abbrev.	Type	Levels
+environment	en	Fixed	     7
+taxonomy	ta	Fixed	     4
+
+Excluded terms
+environmentxtaxonomy
+
+PERMANOVA table of results
+	  	      	      	        	       	Unique
+Source	df	    SS	    MS	Pseudo-F	P(perm)	 perms
+en	 6	124.93	20.822	  0.9217	   0.71	   997
+ta	 3	 113.4	37.801	  1.6733	  0.008	   998
+Res	10	 225.9	 22.59	        	       	      
+Total	19	   456	      	        	       	      
+
+Details of the expected mean squares (EMS) for the model
+Source	EMS
+en	1*V(Res) + 2.6667*S(en)
+ta	1*V(Res) + 4.3333*S(ta)
+Res	1*V(Res)
+
+Construction of Pseudo-F ratio(s) from mean squares
+Source	Numerator	Denominator	Num.df	Den.df
+en	1*en	1*Res	     6	    10
+ta	1*ta	1*Res	     3	    10
+
+Estimates of components of variation
+Source	Estimate	 Sq.root
+S(en)	-0.66332	-0.81444
+S(ta)	  3.5101	  1.8735
+V(Res)	   22.59	  4.7529
+

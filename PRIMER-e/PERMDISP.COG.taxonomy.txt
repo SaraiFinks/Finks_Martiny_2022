@@ -1,0 +1,59 @@
+PERMDISP
+Distance-based test for homogeneity of multivariate dispersions
+
+Resemblance worksheet
+Name: cog.phyl.env.dist.abund
+Data type: Distance
+Selection: All
+
+Group factor: taxonomy
+Number of permutations: 999
+
+Number of groups: 4
+Number of samples: 23
+
+DEVIATIONS FROM CENTROID
+F: 2.3014  df1: 3  df2: 19
+P(perm): 0.321
+
+PAIRWISE COMPARISONS
+Groups	        t	P(perm)				
+(Actinobacteria,Proteobacteria)	    2.148	 6.6E-2				
+(Actinobacteria,Firmicutes)	  0.24386	  0.825				
+(Actinobacteria,Spirochaetes)	6.0245E-3	      1				
+(Proteobacteria,Firmicutes)	   2.1642	 4.7E-2				
+(Proteobacteria,Spirochaetes)	   1.4353	  0.529				
+(Firmicutes,Spirochaetes)	  0.15441	  0.915				
+
+MEANS AND STANDARD ERRORS
+Group	Size	Average	     SE
+Actinobacteria	   7	 3.1436	0.31518
+Proteobacteria	   7	 4.1942	0.37404
+Firmicutes	   7	 3.0208	0.39249
+Spirochaetes	   2	 3.1398	      0
+
+Sample	Group	Distance
+Actinobacteria_plant	Actinobacteria	  4.3792
+Actinobacteria_soil	Actinobacteria	  1.6907
+Actinobacteria_animal	Actinobacteria	  2.7122
+Actinobacteria_freshwater	Actinobacteria	  3.5064
+Actinobacteria_human	Actinobacteria	  3.5572
+Actinobacteria_marine	Actinobacteria	  2.9427
+Actinobacteria_wastewater	Actinobacteria	  3.2165
+Proteobacteria_animal	Proteobacteria	  5.5175
+Proteobacteria_freshwater	Proteobacteria	  2.8118
+Proteobacteria_human	Proteobacteria	  4.2831
+Proteobacteria_plant	Proteobacteria	   5.402
+Proteobacteria_soil	Proteobacteria	  3.9545
+Proteobacteria_wastewater	Proteobacteria	  4.0048
+Proteobacteria_marine	Proteobacteria	  3.3856
+Firmicutes_animal	Firmicutes	  3.2716
+Firmicutes_freshwater	Firmicutes	  4.4285
+Firmicutes_human	Firmicutes	  3.8092
+Firmicutes_marine	Firmicutes	  3.0074
+Firmicutes_plant	Firmicutes	   1.874
+Firmicutes_soil	Firmicutes	  1.4662
+Firmicutes_wastewater	Firmicutes	  3.2886
+Spirochaetes_animal	Spirochaetes	  3.1398
+Spirochaetes_human	Spirochaetes	  3.1398
+
