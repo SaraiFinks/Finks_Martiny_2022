@@ -112,6 +112,7 @@ filtered.plsdb.1$taxon_phylum_name <-
       "Tenericutes"
     )
   )
+  
 plasmid_prop_env_taxa <-
   filtered.plsdb.1 %>% group_by(environment) %>% dplyr::count(taxon_phylum_name) %>% filter(!is.na(taxon_phylum_name)) %>% mutate(ratio = scales::percent(n / sum(n)))
 
@@ -852,6 +853,72 @@ figure_A4 <-
 
 plot(figure_A4)
 
+#Multivariate analysis of variance - plasmid mobility genes (PERMANOVA performed in PRIMERe)
+
+mob_phyla_env <- as.matrix(mob_by_env_taxa_traits)
+which(rownames(mob_phyla_env) == "not_detected")
+mob_phyla_env <- mob_phyla_env[-12, ]
+nrow(mob_phyla_env)
+mob_phyla_env <- as.data.frame(mob_phyla_env)
+
+colSums(mob_phyla_env)
+rowSums(mob_phyla_env)
+
+#remove all rows who sum to less than 6
+mob_phyla_env <-
+  mob_phyla_env[rowSums(mob_phyla_env) >= 6,]
+nrow(mob_phyla_env)
+rowSums(mob_phyla_env)
+
+colSums(mob_phyla_env)
+rowSums(mob_phyla_env)
+nrow(mob_phyla_env)
+
+mob_phyla_env <- read_excel("mob_phyla_env.xlsx")
+mob_phyla_env <-
+  data.frame(mob_phyla_env,
+             col.names	=	TRUE,
+             row.names	=	TRUE)
+mob_phyla_env <- mob_phyla_env[, -28]
+colSums(mob_phyla_env)
+
+mob.phyla.env.stand <-
+  sweep(mob_phyla_env, 2, colSums(mob_phyla_env), `/`)
+colSums(mob.phyla.env.stand) #all of the columns sums should add to 1
+
+normalized.mob.phyl.env <-
+  rowNorms(
+   mob.phyla.env.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+
+rowSums(normalized.mob.phyl.env)
+
+normalized.mob.phyl.env.t <- t(normalized.mob.phyl.env)
+
+mob.phyl.env.dist <-
+  vegdist(
+    normalized.mob.phyl.env.t,
+    method = "euclidean",
+    binary = FALSE,
+    diag = TRUE,
+    upper = FALSE,
+    na.rm = FALSE
+  )
+
+mob.phyl.env.dist <- as.data.frame(as.matrix(mob.phyl.env.dist))
+
+write.xlsx2(
+  mob.phyl.env.dist,
+  file = "mob.phyl.env.dist.abund.xlsx",
+  sheetName = "Sheet1",
+  col.names = TRUE,
+  row.names = TRUE,
+  append = FALSE
+)
+
 ```
 
 ```{r Clusters of Orthologous Groups of Genes, include=FALSE, echo=FALSE}
@@ -1515,6 +1582,72 @@ figure_A5_actino = heatmap.2(
 G.test.cog.env.act <- GTest(cog_by_env_act.m2, correct = "none")
 G.test.cog.env.act
 
+#Multivariate analysis of variance - plasmid cog functions (PERMANOVA performed in PRIMERe)
+
+cog_phyla_env <- as.matrix(cog_by_env_taxa_traits)
+which(rownames(cog_phyla_env) == "not_detected")
+cog_phyla_env <- cog_phyla_env[-15, ]
+nrow(cog_phyla_env)
+cog_phyla_env <- as.data.frame(cog_phyla_env)
+
+colSums(cog_phyla_env)
+rowSums(cog_phyla_env)
+
+#combine both R + S categories
+cog_phyla_env['R',]
+cog_phyla_env['S',]
+cog_phyla_env = rbind(cog_phyla_env, colSums(cog_phyla_env[c("R", "S"), ], na.rm = T))
+row.names(cog_phyla_env)[nrow(cog_phyla_env)] = "R+S"
+rowSums(cog_phyla_env)
+cog_phyla_env['R+S',]
+which(rownames(cog_phyla_env) == "R")
+cog_phyla_env <- cog_phyla_env[-18, ]
+cog_phyla_env <- cog_phyla_env[-18, ]
+rowSums(cog_phyla_env)
+
+#Remove rare plasmid phyla
+cog_phyla_env <- cog_phyla_env[, -(37:45)]
+cog_phyla_env <- cog_phyla_env[, -(19:23)]
+cog_phyla_env <- cog_phyla_env[, -26]
+cog_phyla_env <- cog_phyla_env[, -29]
+
+cog.phyl.env.stand <-
+  sweep(cog_phyla_env, 2, colSums(cog_phyla_env), `/`)
+colSums(cog.phyl.env.stand) #all of the columns sums should add to 1
+
+normalized.cog.phyl.env <-
+  rowNorms(
+    cog.phyl.env.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+
+rowSums(normalized.cog.phyl.env)
+
+normalized.cog.phyl.env.t <- t(normalized.cog.phyl.env)
+
+cog.phyl.env.dist <-
+  vegdist(
+    normalized.cog.phyl.env.t,
+    method = "euclidean",
+    binary = FALSE,
+    diag = TRUE,
+    upper = FALSE,
+    na.rm = FALSE
+  )
+
+cog.phyl.env.dist <- as.data.frame(as.matrix(cog.phyl.env.dist))
+
+write.xlsx2(
+  cog.phyl.env.dist,
+  file = "cog.phyl.env.dist.abund.xlsx",
+  sheetName = "Sheet1",
+  col.names = TRUE,
+  row.names = TRUE,
+  append = FALSE
+)
+
 ```
 
 ```{r Carbohydrate utilization traits, include=FALSE, echo=FALSE}
@@ -2039,6 +2172,74 @@ figure_A7_actino <- heatmap.2(
   #cexCol = 0.5,
   #lhei = c(2, 10),
   #labRow = row.names(normalized.act.cazy)
+)
+
+#Multivariate analysis of variance - plasmid CAZymes (PERMANOVA performed in PRIMERe)
+
+cazy_phyla_env <- as.matrix(cazy_by_env_taxa_traits)
+which(rownames(cazy_phyla_env) == "not_detected")
+cazy_phyla_env <- cazy_phyla_env[-259, ]
+nrow(cazy_phyla_env)
+cazy_phyla_env <- as.data.frame(cazy_phyla_env)
+
+colSums(cazy_phyla_env)
+rowSums(cazy_phyla_env)
+
+#remove all rows who sum to less than 6
+cazy_phyla_env <-
+  cazy_phyla_env[rowSums(cazy_phyla_env) >= 6,]
+nrow(cazy_phyla_env)
+rowSums(cazy_phyla_env)
+
+colSums(cazy_phyla_env)
+rowSums(cazy_phyla_env)
+nrow(cazy_phyla_env)
+
+cazy_phyla_env <- read_excel("cazy_phyla_env_50.xlsx")
+cazy_phyla_env <-
+  data.frame(cazy_phyla_env,
+             col.names	=	TRUE,
+             row.names	=	TRUE)
+cazy_phyla_env <- cazy_phyla_env[, -30]
+colSums(cazy_phyla_env)
+cazy_phyla_env <- cazy_phyla_env[, -29]
+colSums(cazy_phyla_env)
+
+cazy.phyla.env.stand <-
+  sweep(cazy_phyla_env, 2, colSums(cazy_phyla_env), `/`)
+colSums(cazy.phyla.env.stand) #all of the columns sums should add to 1
+
+normalized.cazy.phyl.env <-
+  rowNorms(
+   cazy.phyla.env.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+
+rowSums(normalized.cazy.phyl.env)
+
+normalized.cazy.phyl.env.t <- t(normalized.cazy.phyl.env)
+
+cazy.phyl.env.dist <-
+  vegdist(
+    normalized.cazy.phyl.env.t,
+    method = "euclidean",
+    binary = FALSE,
+    diag = TRUE,
+    upper = FALSE,
+    na.rm = FALSE
+  )
+
+cazy.phyl.env.dist <- as.data.frame(as.matrix(cazy.phyl.env.dist))
+
+write.xlsx2(
+  cazy.phyl.env.dist,
+  file = "cazy.phyl.env.dist.abund_50.xlsx",
+  sheetName = "Sheet1",
+  col.names = TRUE,
+  row.names = TRUE,
+  append = FALSE
 )
 
 ```
@@ -2577,6 +2778,74 @@ figure_A8_actino <- heatmap.2(
   #labRow = row.names(normalized.act.nit)
 )
 
+#Multivariate analysis of variance - plasmid nitrogen genes (PERMANOVA performed in PRIMERe)
+
+nit_phyla_env <- as.matrix(nit_by_env_taxa_traits)
+nrow(nit_phyla_env)
+nit_phyla_env <- as.data.frame(nit_phyla_env)
+
+colSums(nit_phyla_env)
+rowSums(nit_phyla_env)
+
+#remove all rows who sum to less than 6
+nit_phyla_env <-
+  nit_phyla_env[rowSums(nit_phyla_env) >= 6,]
+nrow(nit_phyla_env)
+rowSums(nit_phyla_env)
+
+colSums(nit_phyla_env)
+rowSums(nit_phyla_env)
+nrow(nit_phyla_env)
+
+nit_phyla_env <- read_excel("nit_phyla_env.xlsx")
+
+nit_phyla_env <-
+  data.frame(nit_phyla_env,
+             col.names	=	TRUE,
+             row.names	=	TRUE)
+#Remove plasmids from rare phyla
+nit_phyla_env <- nit_phyla_env[, -30]
+colSums(nit_phyla_env)
+
+nit_phyla_env <- nit_phyla_env[, -27]
+colSums(nit_phyla_env)
+
+nit.phyla.env.stand <-
+  sweep(nit_phyla_env, 2, colSums(nit_phyla_env), `/`)
+colSums(nit.phyla.env.stand) #all of the columns sums should add to 1
+
+normalized.nit.phyl.env <-
+  rowNorms(
+   nit.phyla.env.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+
+rowSums(normalized.nit.phyl.env)
+
+normalized.nit.phyl.env.t <- t(normalized.nit.phyl.env)
+
+nit.phyl.env.dist <-
+  vegdist(
+    normalized.nit.phyl.env.t,
+    method = "euclidean",
+    binary = FALSE,
+    diag = TRUE,
+    upper = FALSE,
+    na.rm = FALSE
+  )
+
+nit.phyl.env.dist <- as.data.frame(as.matrix(nit.phyl.env.dist))
+
+write.xlsx2(
+  nit.phyl.env.dist,
+  file = "nit.phyl.env.dist.abund.xlsx",
+  sheetName = "Sheet1",
+  col.names = TRUE,
+  row.names = TRUE,
+  append = FALSE
+)
 ```
 
 ```{r Resistance traits,include=FALSE, echo=FALSE}
@@ -3040,4 +3309,59 @@ nrow(args_by_env_act.m2)
 
 ####No plot was generated for resistance genes found on plasmids of Actinobacteria since there were 10 ARGs were found in 304 Actinobacteria plasmids. The resistance genes that were found  were mainly from wastewater plasmids####
 
+#Multivariate analysis of variance - plasmid resistance genes (PERMANOVA performed in PRIMERe)
+
+args_phyla_env <- as.matrix(args_by_env_taxa_traits)
+nrow(args_phyla_env)
+args_phyla_env <- as.data.frame(args_phyla_env)
+
+colSums(args_phyla_env)
+rowSums(args_phyla_env)
+
+#remove all rows who sum to less than 6
+args_phyla_env <-
+  args_phyla_env[rowSums(args_phyla_env) >= 6,]
+nrow(args_phyla_env)
+rowSums(args_phyla_env)
+
+colSums(args_phyla_env)
+rowSums(args_phyla_env)
+nrow(args_phyla_env)
+
+args.phyla.env.stand <-
+  sweep(args_phyla_env, 2, colSums(args_phyla_env), `/`)
+colSums(args.phyla.env.stand) #all of the columns sums should add to 1
+
+normalized.args.phyl.env <-
+  rowNorms(
+   args.phyla.env.stand,
+    type = "z",
+    center = TRUE,
+    scale = TRUE
+  )
+
+rowSums(normalized.args.phyl.env)
+
+normalized.args.phyl.env.t <- t(normalized.args.phyl.env)
+
+args.phyl.env.dist <-
+  vegdist(
+    normalized.args.phyl.env.t,
+    method = "euclidean",
+    binary = FALSE,
+    diag = TRUE,
+    upper = FALSE,
+    na.rm = FALSE
+  )
+
+args.phyl.env.dist <- as.data.frame(as.matrix(args.phyl.env.dist))
+
+write.xlsx2(
+  args.phyl.env.dist,
+  file = "args.phyl.env.dist.abund.xlsx",
+  sheetName = "Sheet1",
+  col.names = TRUE,
+  row.names = TRUE,
+  append = FALSE
+)
 ```
