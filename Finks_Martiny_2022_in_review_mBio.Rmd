@@ -16,7 +16,7 @@ editor_options:
 ```{r Working directory, include=FALSE, echo=FALSE}
 
 getwd()
-setwd("/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/github")
+setwd("yourworkingdirectory")
 
 ```
 
