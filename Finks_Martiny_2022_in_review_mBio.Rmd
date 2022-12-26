@@ -1,7 +1,7 @@
 ---
-title: "Plasmids as reservoirs of environmentally-adaptive bacterial traits"
+title: "Plasmid-Encoded Traits Vary across Environments"
 author: "Sarai S. Finks"
-date: "6/1/2020"
+date: "12/26/2022"
 output:
   html_document: 
     toc: yes
@@ -74,7 +74,7 @@ library(xlsx)
 
 filtered.plsdb <-
   read_excel(
-    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/filtered_plsdb.xlsx"
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/filtered_plsdb.xlsx"
   )
 
 filtered.plsdb  <-
@@ -86,7 +86,7 @@ row.names(filtered.plsdb.1) <- filtered.plsdb$UID_NUCCORE
 sapply(filtered.plsdb.1, class)
 filtered.plsdb.1[1:10, 1:10]
 
-#Figure A1 - Taxonomic representation of plasmid host by environment in the PLSDB dataset.
+#Figure S2 - Taxonomic representation of plasmid host by environment in the PLSDB dataset.
 
 summary(filtered.plsdb.1)
 summary(filtered.plsdb.1$environment)
@@ -118,7 +118,7 @@ plasmid_prop_env_taxa <-
 
 #write.xlsx(
 #as.data.frame(percentData),
-#file = "env.summary.barplot.xlsx",
+#file = "figureS2.xlsx",
 #sheetName = "Sheet1",
 #col.names = TRUE,
 #row.names = TRUE
@@ -138,7 +138,7 @@ c11 <- c(
   "#4baed4"
 )
 
-figure_A1 <-
+figure_S2 <-
   ggplot(plasmid_prop_env_taxa,
          aes(
            x = fct_relevel(
@@ -163,7 +163,7 @@ figure_A1 <-
   xlab(label = "Environment") +
   ylab(label = "Proportion of Phyla")
 
-plot(figure_A1)
+plot(figure_S2)
 
 #Calculate mean plasmid size (kbp) across environments.
 
@@ -227,7 +227,7 @@ means.taxa.env <-
 # row.names = TRUE
 #)
 
-#Figures 1 and A2 - plasmid size variation across environment, host-taxonomy, and host-taxonomy given environment.
+#Figures 1 and S3 - plasmid size variation across environment, host-taxonomy, and host-taxonomy given environment.
 
 #Non-parametric tests, assumptions for ANOVA not met.
 
@@ -390,7 +390,7 @@ figure_1 <-
 
 plot(figure_1)
 
-#Figure A2 - Plasmid size distributions vary significantly by host taxonomy and environment
+#Figure S3A - Plasmid size distributions vary significantly by host taxonomy and environment
 
 c10a <- c(
   "#56ae6c",
@@ -405,7 +405,7 @@ c10a <- c(
   "#4baed4"
 )
 
-figure_A2_A <-
+figure_S3A <-
   ggplot(
     subset(
       filtered.plsdb.1,
@@ -449,7 +449,7 @@ figure_A2_A <-
        fill = 'Phyla',
        color = "none")
 
-plot(figure_A2_A)
+plot(figure_S3A)
 
 c07b <- c("#6f65c4",
           "#6f65c4",
@@ -459,7 +459,7 @@ c07b <- c("#6f65c4",
           "#6f65c4",
           "#6f65c4")
 
-figure_A2_B <-
+figure_S3B <-
   ggplot(
     subset(
       filtered.plsdb.1,
@@ -518,19 +518,19 @@ figure_A2_B <-
   labs(x = 'Plasmid size (Log10 bp)',
        y = 'Proteobacteria plasmids')
 
-plot(figure_A2_B)
+plot(figure_S3B)
 
-figure_A2 <-
+figure_S3 <-
   ggarrange(
-    figure_A2_A,
-    figure_A2_B,
+    figure_S3A,
+    figure_S3B,
     labels = c("A.", "B."),
     align = "v",
     ncol = 1,
     nrow = 2,
     widths = c(5, 5)
   )
-plot(figure_A2)
+plot(figure_S3)
 
 #Plasmid coding density by environment and host-taxonomy
 
@@ -582,9 +582,9 @@ mean.env
 mean.env %>%
   mutate(grand.mean = mean(mean))
 
-#Figure A3 - Plasmid coding density by environment
+#Figure X - Plasmid coding density by environment (not included in final version)
 
-figure_A3 <-
+figure_X <-
   ggplot(data = filtered.plsdb.1,
          aes(
            x = fct_relevel(
@@ -651,7 +651,7 @@ figure_A3 <-
   theme(legend.title = element_blank()) +
   theme(legend.position = "none")
 
-plot(figure_A3)
+plot(figure_X)
 
 ```
 
@@ -668,7 +668,7 @@ all_mob  <-
                 col.names	=	TRUE,
                 row.names	=	TRUE)
 
-#Figure 5 - The proportion of MOB family relaxases by plasmid host-taxonomy.
+#Figure S4 - The proportion of relaxases by plasmid host-taxonomy.
 
 mob_by_taxa <-
   all_mob  %>% group_by(host_taxonomy_phylum) %>% group_by(relaxase_family_name) %>% dplyr::count(host_taxonomy_phylum) %>% pivot_wider(names_from = host_taxonomy_phylum, values_from = n)
@@ -737,7 +737,7 @@ c10c <- c(
   "#4baed4"
 )
 
-figure_5 <-
+figure_S4 <-
   ggplot(mob_by_taxa_traits.2,
          aes(
            x = row_names,
@@ -754,9 +754,9 @@ figure_5 <-
   ylab(label = "Proportion of MOB families") +
   guides(fill = guide_legend(title = "MOB Families"))
 
-plot(figure_5)
+plot(figure_S4)
 
-#Figure A4 - The proportion of MOB family relaxases by environment.
+#Figure 2A - The proportion of MOB family relaxases by environment.
 
 mob_by_env_all <-
   filtered.plsdb.1  %>% group_by(environment) %>% group_by(mobility_designation) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
@@ -825,7 +825,7 @@ c09b <- c(
   "#4baed4"
 )
 
-figure_A4 <-
+figure_2A <-
   ggplot(mob_by_env_traits.2,
          aes(
            x = fct_relevel(
@@ -851,7 +851,7 @@ figure_A4 <-
   ylab(label = "Proportion of MOB families") +
   guides(fill = guide_legend(title = "MOB Families"))
 
-plot(figure_A4)
+plot(figure_2A)
 
 #Multivariate analysis of variance - plasmid mobility genes (PERMANOVA performed in PRIMERe)
 
@@ -910,14 +910,14 @@ mob.phyl.env.dist <-
 
 mob.phyl.env.dist <- as.data.frame(as.matrix(mob.phyl.env.dist))
 
-write.xlsx2(
-  mob.phyl.env.dist,
-  file = "mob.phyl.env.dist.abund.xlsx",
-  sheetName = "Sheet1",
-  col.names = TRUE,
-  row.names = TRUE,
-  append = FALSE
-)
+#write.xlsx2(
+  #mob.phyl.env.dist,
+  #file = "mob.phyl.env.dist.abund.xlsx",
+  #sheetName = "Sheet1",
+  #col.names = TRUE,
+  #row.names = TRUE,
+  #append = FALSE
+#)
 
 ```
 
@@ -999,7 +999,7 @@ cogs_by_mob_env_m <-
 G.test.cog.env.mob <- GTest(cogs_by_mob_env_m, correct = "none")
 G.test.cog.env.mob
 
-#Figure 2 - Cumulative COG richness of plasmids by environment.
+#Figure 3 - Cumulative COG richness of plasmids by environment.
 
 cog_by_env.rare <-
   all_cogs  %>% group_by(environment) %>% group_by(COG20_FUNCTION_ACC1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
@@ -1023,7 +1023,7 @@ c07c <- c("#b861b6",
           "#c47f3a",
           "#eda4ba")
 
-figure_2 <-
+figure_3 <-
   rarecurve(
     cog_by_env_rare.t,
     step = 1000,
@@ -1034,7 +1034,7 @@ figure_2 <-
     bty = "n"
   )
 
-#Figure 3 - Plasmid COG functions by environment
+#Figure 4 - Plasmid COG functions by environment
 
 cog_by_env.cat_traits.m <- as.matrix(cog_by_env_traits)
 which(rownames(cog_by_env.cat_traits.m) == "not_detected")
@@ -1116,7 +1116,7 @@ clusters.env.cog <- hclust(dist_env_cog, 'ward.D')
 dist_cog <- vegdist(normalized.cog, method = 'euclidean')
 clusters.cog <- hclust(dist_cog, 'ward.D')
 
-figure_3 <- heatmap.2(
+figure_4 <- heatmap.2(
   normalized.cog,
   Rowv = as.dendrogram(clusters.cog),
   Colv = as.dendrogram(clusters.env.cog),
@@ -1152,7 +1152,7 @@ figure_3 <- heatmap.2(
 G.test.cog.env <- GTest(cog_by_env.cat_traits.m2, correct = "none")
 G.test.cog.env
 
-#Figure A5 - Plasmid COG categories by host phylum and environment
+#Figure S6A - Plasmid COG categories by host phylum and environment
 
 #Subset dataframe by Proteobacteria specific columns
 
@@ -1262,7 +1262,7 @@ prot_order <- c(
   "Proteobacteria_freshwater"
 )
 
-figure_A5_prot = heatmap.2(
+figure_S6A_prot = heatmap.2(
   as.matrix(normalized.prot.cog[, prot_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -1405,7 +1405,7 @@ firm_order <- c(
   "Firmicutes_freshwater"
 )
 
-figure_A5_firm = heatmap.2(
+figure_S6A_firm = heatmap.2(
   as.matrix(normalized.firm.cog[, firm_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -1546,7 +1546,7 @@ actino_order <- c(
   "Actinobacteria_freshwater"
 )
 
-figure_A5_actino = heatmap.2(
+figure_S6A_actino = heatmap.2(
   as.matrix(normalized.act.cog[, actino_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -1639,14 +1639,14 @@ cog.phyl.env.dist <-
 
 cog.phyl.env.dist <- as.data.frame(as.matrix(cog.phyl.env.dist))
 
-write.xlsx2(
-  cog.phyl.env.dist,
-  file = "cog.phyl.env.dist.abund.xlsx",
-  sheetName = "Sheet1",
-  col.names = TRUE,
-  row.names = TRUE,
-  append = FALSE
-)
+#write.xlsx2(
+  #cog.phyl.env.dist,
+  #file = "cog.phyl.env.dist.abund.xlsx",
+  #sheetName = "Sheet1",
+  #col.names = TRUE,
+  #row.names = TRUE,
+  #append = FALSE
+#)
 
 ```
 
@@ -3364,4 +3364,1170 @@ write.xlsx2(
   row.names = TRUE,
   append = FALSE
 )
+```
+
+```{r Assessing biases in the PLSDB dataset, echo=FALSE}
+
+filtered.plsdb <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/filtered_plsdb.xlsx"
+  )
+filtered.plsdb  <-
+  as.data.frame(filtered.plsdb, col.names	=	TRUE,	row.names	=	TRUE)
+filtered.plsdb[1:10 , 1:10]
+
+filtered.plsdb.1 <- filtered.plsdb[-1]
+row.names(filtered.plsdb.1) <- filtered.plsdb$UID_NUCCORE
+sapply(filtered.plsdb.1, class)
+filtered.plsdb.1[1:10, 1:10]
+
+df <- filtered.plsdb.1 %>%
+  make_long(
+    taxon_phylum_name,
+    taxon_class_name,
+    taxon_order_name,
+    taxon_family_name,
+    taxon_genus_name
+  )
+
+#For plot parameters and ideas, see https://rpubs.com/techanswers88/sankey-with-own-data-in-ggplot
+figure_S1 <- ggplot(
+  df,
+  aes(
+    x = x,
+    next_x = next_x,
+    node = node,
+    next_node = next_node,
+    fill = factor(node),
+    label = node
+  )
+) +
+  geom_sankey(
+    flow.alpha = 0.8,
+    node.color = "black",
+    node.fill = "black",
+    show.legend = FALSE,
+    width = 0.005
+  ) +
+  #geom_sankey_label(size = 0.5, hjust = -0.5) +
+  geom_sankey_text(size = 0.5,
+                   color = "black",
+                   hjust = -0.5) +
+  scale_fill_viridis_d() +
+  scale_y_discrete(expand = c(0.01, 0.01)) +
+  theme_sankey(base_size = 0.2) +
+  theme(legend.position = "none") +
+  theme(
+    axis.title = element_blank()
+    ,
+    axis.text.y = element_blank()
+    ,
+    axis.text.x = element_blank(),
+    axis.ticks = element_blank()
+    ,
+    panel.grid = element_blank()
+  )
+
+plot(figure_S1)
+
+```
+
+```{r Quantifying plasmids counts by species: E. coli and K. pneumoniae, echo=FALSE}
+
+ecoli <-
+  read_excel(
+    "~/Google_drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/ecoli.xlsx"
+  )
+
+ecoli  <-
+  as.data.frame(ecoli, col.names	=	TRUE,	row.names	=	TRUE)
+ecoli[1:10 , 1:10]
+
+ecoli.1 <- ecoli[-1]
+row.names(ecoli.1) <- ecoli$UID_NUCCORE
+sapply(ecoli.1, class)
+ecoli.1[1:10, 1:10]
+
+ecoli_by_env <-
+  ecoli.1 %>% group_by(environment) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+ecoli_by_env_l <- pivot_longer(ecoli_by_env, cols = 1:6)
+
+c06 <- c("#7769d6",
+         "#b861b6",
+         "#eda4ba",
+         "#6ea352",
+         "#c94a67",
+         "#6895c8")
+
+ecoli_env <-
+  ggplot(ecoli_by_env_l,
+         aes(
+           x = "",
+           y = value,
+           fill = fct_relevel(
+             name,
+             "human",
+             "animal",
+             "wastewater",
+             "plant",
+             "marine",
+             "freshwater"
+           )
+         )) +
+  geom_bar(stat = "identity", width = 1)  +
+  coord_polar("y", start = 0) +
+  scale_fill_manual(values = c06) +
+  theme_void() +
+  theme(legend.position = "none") +
+  geom_text(aes(y = value, label = name), color = "white", size = 6)
+
+plot(ecoli_env)
+
+ecoli_size_box <-
+  ggplot(
+    data = ecoli.1,
+    aes(
+      x = fct_relevel(
+        environment,
+        "human",
+        "animal",
+        "wastewater",
+        "plant",
+        "marine",
+        "freshwater"
+      ),
+      y = Length_NUCCORE,
+      fill = fct_relevel(
+        environment,
+        "human",
+        "animal",
+        "wastewater",
+        "plant",
+        "marine",
+        "freshwater"
+      ),
+      color = fct_relevel(
+        environment,
+        "human",
+        "animal",
+        "wastewater",
+        "plant",
+        "marine",
+        "freshwater"
+      )
+    )
+  ) +
+  geom_boxplot(
+    outlier.size = 0.5,
+    lwd = 0.5,
+    width = 0.5,
+    fatten = 4,
+    color = '#294240',
+  ) +
+  scale_fill_manual(values = c06) +
+  scale_color_manual(values = c06) +
+  labs(x = 'Environment',
+       y = 'Size (NT length bp)') +
+  theme_classic() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank()
+  ) +
+  scale_y_continuous(breaks = seq(0, 1000000, by = 10000),
+                     expand = c(0, 0)) +
+  coord_cartesian(clip = 'off') +
+  geom_hline(yintercept = mean(ecoli.1$Length_NUCCORE),
+             linetype = 2) + #Add horizontal line at base mean
+  stat_compare_means(method = "kruskal.test", label.y = 3.5) + #Add global kw p-value
+  stat_compare_means(
+    label = "p.signif",
+    label.y = 400000,
+    method = "wilcox.test",
+    ref.group = ".all."
+  ) +
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "none")
+
+plot(ecoli_size_box)
+
+#Testing whether whether human and non-human animals differ in their trait content
+cogs_ecoli <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
+    sheet = "ecoli"
+  )
+
+cogs_ecoli  <-
+  as.data.frame(cogs_ecoli,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+ecoli_cog_by_env <-
+  cogs_ecoli  %>% group_by(environment) %>% group_by(COG20_CATEGORY_ACC1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+ecoli_cog_by_env  <-
+  as.data.frame(ecoli_cog_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+ecoli_cog_by_env  <-
+  as.data.frame((ecoli_cog_by_env[-13, ]))
+
+ecoli_cog_by_env  <-
+  as.data.frame((ecoli_cog_by_env[, -7]))
+
+ecoli_cog_by_env[is.na(ecoli_cog_by_env)] <- 0
+
+row.names(ecoli_cog_by_env) = ecoli_cog_by_env[, 1]
+ecoli_cog_by_env_traits <-
+  as.data.frame((ecoli_cog_by_env[, -1]))
+
+#So we want to test just between the human and the non-human animal ecoli, lets subset this dataframe
+ecoli_cog_host <-
+  ecoli_cog_by_env_traits %>% dplyr::select(animal,
+                                            human)
+
+ecoli_cog_host  <-
+  as.matrix(ecoli_cog_host)
+
+#Test the likelihood of COG categories across environment
+G.test.cog.ecoli.host <- GTest(ecoli_cog_host, correct = "none")
+G.test.cog.ecoli.host
+
+args_ecoli <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx",
+    sheet = "ecoli"
+  )
+
+args_ecoli  <-
+  as.data.frame(args_ecoli,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+ecoli_args_by_env <-
+  args_ecoli  %>% group_by(environment) %>% group_by(class) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+ecoli_args_by_env  <-
+  as.data.frame(ecoli_args_by_env,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+ecoli_args_by_env  <-
+  as.data.frame((ecoli_args_by_env[-16, ]))
+
+ecoli_args_by_env  <-
+  as.data.frame((ecoli_args_by_env[, -6]))
+
+ecoli_args_by_env[is.na(ecoli_args_by_env)] <- 0
+
+row.names(ecoli_args_by_env) = ecoli_args_by_env[, 1]
+ecoli_args_by_env_traits <-
+  as.data.frame((ecoli_args_by_env[, -1]))
+
+#So we want to test just between the human and the non-human animal ecoli, lets subset this dataframe
+ecoli_args_host <-
+  ecoli_args_by_env_traits %>% dplyr::select(animal,
+                                             human)
+
+ecoli_args_host  <-
+  as.matrix(ecoli_args_host)
+
+#Test the likelihood of ARGs by classes across environment
+G.test.args.ecoli.host <- GTest(ecoli_args_host, correct = "none")
+G.test.args.ecoli.host
+
+cazys_ecoli <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
+    sheet = "ecoli"
+  )
+
+cazys_ecoli  <-
+  as.data.frame(cazys_ecoli,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+ecoli_cazys_by_env <-
+  cazys_ecoli  %>% group_by(environment) %>% group_by(cazy_domain1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+ecoli_cazys_by_env  <-
+  as.data.frame(ecoli_cazys_by_env,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+ecoli_cazys_by_env  <-
+  as.data.frame((ecoli_cazys_by_env[-25, ]))
+
+ecoli_cazys_by_env[is.na(ecoli_cazys_by_env)] <- 0
+
+row.names(ecoli_cazys_by_env) = ecoli_cazys_by_env[, 1]
+ecoli_cazys_by_env_traits <-
+  as.data.frame((ecoli_cazys_by_env[, -1]))
+
+#So we want to test just between the human and the non-human animal ecoli, lets subset this dataframe
+ecoli_cazys_host <-
+  ecoli_cazys_by_env_traits %>% dplyr::select(animal,
+                                              human)
+
+ecoli_cazys_host  <-
+  as.matrix(ecoli_cazys_host)
+
+#Test the likelihood of CAZymes across environment
+G.test.cazys.ecoli.host <- GTest(ecoli_cazys_host, correct = "none")
+G.test.cazys.ecoli.host
+
+nit_ecoli <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
+    sheet = "ecoli"
+  )
+
+nit_ecoli  <-
+  as.data.frame(nit_ecoli,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+ecoli_nit_by_env <-
+  nit_ecoli  %>% group_by(environment) %>% group_by(gene_family) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+ecoli_nit_by_env  <-
+  as.data.frame(ecoli_nit_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+ecoli_nit_by_env  <-
+  as.data.frame((ecoli_nit_by_env[-15, ]))
+
+ecoli_nit_by_env  <-
+  as.data.frame((ecoli_nit_by_env[, -5]))
+
+ecoli_nit_by_env[is.na(ecoli_nit_by_env)] <- 0
+
+row.names(ecoli_nit_by_env) = ecoli_nit_by_env[, 1]
+ecoli_nit_by_env_traits <-
+  as.data.frame((ecoli_nit_by_env[, -1]))
+
+#So we want to test just between the human and the non-human animal E. coli, lets subset this dataframe
+ecoli_nit_host <-
+  ecoli_nit_by_env_traits %>% dplyr::select(animal,
+                                            human)
+
+ecoli_nit_host  <-
+  as.matrix(ecoli_nit_host)
+
+#Test the likelihood of nitrogen gene families across environment
+G.test.nit.ecoli.host <- GTest(ecoli_nit_host, correct = "none")
+G.test.nit.ecoli.host
+
+mob_ecoli <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
+    sheet = "ecoli"
+  )
+
+mob_ecoli  <-
+  as.data.frame(mob_ecoli,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+ecoli_mob_by_env <-
+  mob_ecoli  %>% group_by(environment) %>% group_by(relaxase_family_name) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+ecoli_mob_by_env  <-
+  as.data.frame(ecoli_mob_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+ecoli_mob_by_env  <-
+  as.data.frame((ecoli_mob_by_env[-7, ]))
+
+ecoli_mob_by_env[is.na(ecoli_mob_by_env)] <- 0
+
+row.names(ecoli_mob_by_env) = ecoli_mob_by_env[, 1]
+ecoli_mob_by_env_traits <-
+  as.data.frame((ecoli_mob_by_env[, -1]))
+
+#So we want to test just between the human and the non-human animal E. coli, lets subset this datafram
+ecoli_mob_host <-
+  ecoli_mob_by_env_traits %>% dplyr::select(animal,
+                                            human)
+
+ecoli_mob_host  <-
+  as.matrix(ecoli_mob_host)
+
+#Test the likelihood of mobility across environment
+G.test.mob.ecoli.host <- GTest(ecoli_mob_host, correct = "none")
+G.test.mob.ecoli.host
+
+#When we consider just the sample size of the Klebsiella...
+kpneum <-
+  read_excel(
+    "~/Google_drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/kpneum.xlsx"
+  )
+
+kpneum  <-
+  as.data.frame(kpneum, col.names	=	TRUE,	row.names	=	TRUE)
+kpneum[1:10 , 1:10]
+
+kpneum.1 <- kpneum[-1]
+row.names(kpneum.1) <- kpneum$UID_NUCCORE
+sapply(kpneum.1, class)
+kpneum.1[1:10, 1:10]
+
+kpneum_by_env <-
+  kpneum.1 %>% group_by(environment) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+kpneum_by_env_l <- pivot_longer(kpneum_by_env, cols = 1:4)
+
+c04 <- c("#7769d6",
+         "#b861b6",
+         "#eda4ba",
+         "#c94a67")
+
+kpneum_env <-
+  ggplot(kpneum_by_env_l,
+         aes(
+           x = "",
+           y = value,
+           fill = fct_relevel(name,
+                              "human",
+                              "animal",
+                              "wastewater",
+                              "marine",)
+         )) +
+  geom_bar(stat = "identity", width = 1)  +
+  coord_polar("y", start = 0) +
+  scale_fill_manual(values = c04) +
+  theme_void() +
+  theme(legend.position = "none") +
+  geom_text(aes(y = value, label = name), color = "white", size = 6)
+
+plot(kpneum_env)
+
+kpneum_size_box <-
+  ggplot(
+    data = kpneum.1,
+    aes(
+      x = fct_relevel(environment,
+                      "human",
+                      "animal",
+                      "wastewater",
+                      "marine"),
+      y = Length_NUCCORE,
+      fill = fct_relevel(environment,
+                         "human",
+                         "animal",
+                         "wastewater",
+                         "marine"),
+      color = fct_relevel(environment,
+                          "human",
+                          "animal",
+                          "wastewater",
+                          "marine",)
+    )
+  ) +
+  geom_boxplot(
+    outlier.size = 0.5,
+    lwd = 0.5,
+    width = 0.5,
+    fatten = 4,
+    color = '#294240',
+  ) +
+  scale_fill_manual(values = c04) +
+  scale_color_manual(values = c04) +
+  labs(x = 'Environment',
+       y = 'Size (NT length bp)') +
+  theme_classic() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank()
+  ) +
+  scale_y_continuous(breaks = seq(0, 1000000, by = 10000),
+                     expand = c(0, 0)) +
+  coord_cartesian(clip = 'off') +
+  geom_hline(yintercept = mean(kpneum.1$Length_NUCCORE),
+             linetype = 2) + #Add horizontal line at base mean
+  stat_compare_means(method = "kruskal.test", label.y = 3.5) + #Add global kw p-value
+  stat_compare_means(
+    label = "p.signif",
+    label.y = 400000,
+    method = "wilcox.test",
+    ref.group = ".all."
+  ) +
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "none")
+
+plot(kpneum_size_box)
+
+klebsiella <-
+  read_excel(
+    "~/Google_drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/kpneum.xlsx",
+    sheet = "klebsiella"
+  )
+
+klebsiella  <-
+  as.data.frame(klebsiella, col.names	=	TRUE,	row.names	=	TRUE)
+klebsiella[1:10 , 1:10]
+
+klebsiella.1 <- klebsiella[-1]
+row.names(klebsiella.1) <- klebsiella$UID_NUCCORE
+sapply(klebsiella.1, class)
+klebsiella.1[1:10, 1:10]
+
+klebsiella_by_env <-
+  klebsiella.1 %>% group_by(environment) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+klebsiella_by_env_l <- pivot_longer(klebsiella_by_env, cols = 1:7)
+
+c07a <- c("#7769d6",
+          "#b861b6",
+          "#eda4ba",
+          "#6ea352",
+          "#c47f3a",
+          "#c94a67",
+          "#6895c8")
+
+klebsiella_env <-
+  ggplot(klebsiella_by_env_l,
+         aes(
+           x = "",
+           y = value,
+           fill = fct_relevel(name,
+                              "human",
+                              "animal",
+                              "wastewater",
+                              "marine",)
+         )) +
+  geom_bar(stat = "identity", width = 1)  +
+  coord_polar("y", start = 0) +
+  scale_fill_manual(values = c04) +
+  theme_void() +
+  theme(legend.position = "none") +
+  geom_text(aes(y = value, label = name), color = "white", size = 6)
+
+plot(klebsiella_env)
+
+klebsiella_size_box <-
+  ggplot(
+    data = klebsiella.1,
+    aes(
+      x = fct_relevel(
+        environment,
+        "human",
+        "animal",
+        "wastewater",
+        "plant",
+        "soil",
+        "marine",
+        "freshwater"
+      ),
+      y = Length_NUCCORE,
+      fill = fct_relevel(
+        environment,
+        "human",
+        "animal",
+        "wastewater",
+        "plant",
+        "soil",
+        "marine",
+        "freshwater"
+      ),
+      color = fct_relevel(
+        environment,
+        "human",
+        "animal",
+        "wastewater",
+        "plant",
+        "soil",
+        "marine",
+        "freshwater"
+      )
+    )
+  ) +
+  geom_boxplot(
+    outlier.size = 0.5,
+    lwd = 0.5,
+    width = 0.5,
+    fatten = 4,
+    color = '#294240',
+  ) +
+  scale_fill_manual(values = c07a) +
+  scale_color_manual(values = c07a) +
+  labs(x = 'Environment',
+       y = 'Size (NT length bp)') +
+  theme_classic() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank()
+  ) +
+  scale_y_continuous(breaks = seq(0, 1000000, by = 10000),
+                     expand = c(0, 0)) +
+  coord_cartesian(clip = 'off') +
+  geom_hline(yintercept = mean(klebsiella.1$Length_NUCCORE),
+             linetype = 2) + #Add horizontal line at base mean
+  stat_compare_means(method = "kruskal.test", label.y = 1000) + #Add global kw p-value
+  stat_compare_means(
+    label = "p.signif",
+    label.y = 520000,
+    method = "wilcox.test",
+    ref.group = ".all."
+  ) +
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "none")
+
+plot(klebsiella_size_box)
+
+```
+
+```{r Sensitivity analyses: Proteobacteria (Acinetobacteria, Escerichia, and Klebsiella removed) and Firmicutes (Staphylococcus removed), echo=FALSE}
+
+cogs_prot <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
+    sheet = "proteobact_big3_removed"
+  )
+
+cogs_prot  <-
+  as.data.frame(cogs_prot,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+prot_cog_by_env <-
+  cogs_prot  %>% group_by(environment) %>% group_by(COG20_CATEGORY_ACC1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+prot_cog_by_env  <-
+  as.data.frame(prot_cog_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+prot_cog_by_env  <-
+  as.data.frame((prot_cog_by_env[-13, ]))
+
+prot_cog_by_env  <-
+  as.data.frame((prot_cog_by_env[, -9]))
+
+prot_cog_by_env[is.na(prot_cog_by_env)] <- 0
+
+row.names(prot_cog_by_env) = prot_cog_by_env[, 1]
+prot_cog_by_env_traits <-
+  as.data.frame((prot_cog_by_env[, -1]))
+
+#Test the likelihood of COG categories across environment
+G.test.cog.prot.host <-
+  GTest(prot_cog_by_env_traits, correct = "none")
+G.test.cog.prot.host
+
+args_prot <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx",
+    sheet = "proteobact_big3_removed"
+  )
+
+args_prot  <-
+  as.data.frame(args_prot,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+prot_args_by_env <-
+  args_prot  %>% group_by(environment) %>% group_by(class) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+prot_args_by_env  <-
+  as.data.frame(prot_args_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+prot_args_by_env  <-
+  as.data.frame((prot_args_by_env[-23, ]))
+
+prot_args_by_env  <-
+  as.data.frame((prot_args_by_env[, -9]))
+
+prot_args_by_env[is.na(prot_args_by_env)] <- 0
+
+row.names(prot_args_by_env) = prot_args_by_env[, 1]
+prot_args_by_env_traits <-
+  as.data.frame((prot_args_by_env[, -1]))
+
+#Test the likelihood of ARGs by classes across environment
+G.test.args.prot.host <-
+  GTest(prot_args_by_env_traits, correct = "none")
+G.test.args.prot.host
+
+cazys_prot <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
+    sheet = "proteobact_big3_removed"
+  )
+
+cazys_prot  <-
+  as.data.frame(cazys_prot,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+prot_cazys_by_env <-
+  cazys_prot  %>% group_by(environment) %>% group_by(cazy_domain1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+prot_cazys_by_env  <-
+  as.data.frame(prot_cazys_by_env,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+prot_cazys_by_env  <-
+  as.data.frame((prot_cazys_by_env[-77, ]))
+
+prot_cazys_by_env  <-
+  as.data.frame((prot_cazys_by_env[-79, ]))
+
+prot_cazys_by_env  <-
+  as.data.frame((prot_cazys_by_env[, -9]))
+
+prot_cazys_by_env[is.na(prot_cazys_by_env)] <- 0
+
+row.names(prot_cazys_by_env) = prot_cazys_by_env[, 1]
+prot_cazys_by_env_traits <-
+  as.data.frame((prot_cazys_by_env[, -1]))
+
+#Test the likelihood of CAZymes across environment
+G.test.cazys.prot.host <-
+  GTest(prot_cazys_by_env_traits, correct = "none")
+G.test.cazys.prot.host
+
+nit_prot <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
+    sheet = "proteobact_big3_removed"
+  )
+
+nit_prot  <-
+  as.data.frame(nit_prot,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+prot_nit_by_env <-
+  nit_prot  %>% group_by(environment) %>% group_by(gene_family) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+prot_nit_by_env  <-
+  as.data.frame(prot_nit_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+prot_nit_by_env  <-
+  as.data.frame((prot_nit_by_env[-35, ]))
+
+prot_nit_by_env  <-
+  as.data.frame((prot_nit_by_env[, -9]))
+
+prot_nit_by_env[is.na(prot_nit_by_env)] <- 0
+
+row.names(prot_nit_by_env) = prot_nit_by_env[, 1]
+prot_nit_by_env_traits <-
+  as.data.frame((prot_nit_by_env[, -1]))
+
+#Test the likelihood of nitrogen gene families across environment
+G.test.nit.prot.host <-
+  GTest(prot_nit_by_env_traits, correct = "none")
+G.test.nit.prot.host
+
+mob_prot <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
+    sheet = "proteobact_big3_removed"
+  )
+
+mob_prot  <-
+  as.data.frame(mob_prot,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+prot_mob_by_env <-
+  mob_prot  %>% group_by(environment) %>% group_by(relaxase_family_name) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+prot_mob_by_env  <-
+  as.data.frame(prot_mob_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+prot_mob_by_env  <-
+  as.data.frame((prot_mob_by_env[-(8:9), ]))
+
+prot_mob_by_env  <-
+  as.data.frame((prot_mob_by_env[, -9]))
+
+prot_mob_by_env[is.na(prot_mob_by_env)] <- 0
+
+row.names(prot_mob_by_env) = prot_mob_by_env[, 1]
+prot_mob_by_env_traits <-
+  as.data.frame((prot_mob_by_env[, -1]))
+
+#Test the likelihood of mobility across environment
+G.test.mob.prot.host <-
+  GTest(prot_mob_by_env_traits, correct = "none")
+G.test.mob.prot.host
+
+cogs_firm <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
+    sheet = "firm_staph_removed"
+  )
+
+cogs_firm  <-
+  as.data.frame(cogs_firm,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+firm_cog_by_env <-
+  cogs_firm  %>% group_by(environment) %>% group_by(COG20_CATEGORY_ACC1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+firm_cog_by_env  <-
+  as.data.frame(firm_cog_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+firm_cog_by_env  <-
+  as.data.frame((firm_cog_by_env[-13, ]))
+
+firm_cog_by_env  <-
+  as.data.frame((firm_cog_by_env[-22, ]))
+
+firm_cog_by_env  <-
+  as.data.frame((firm_cog_by_env[, -9]))
+
+firm_cog_by_env[is.na(firm_cog_by_env)] <- 0
+
+row.names(firm_cog_by_env) = firm_cog_by_env[, 1]
+firm_cog_by_env_traits <-
+  as.data.frame((firm_cog_by_env[, -1]))
+
+#Test the likelihood of COG categories across environment
+G.test.cog.firm.host <-
+  GTest(firm_cog_by_env_traits, correct = "none")
+G.test.cog.firm.host
+
+args_firm <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx",
+    sheet = "firm_staph_removed"
+  )
+
+args_firm  <-
+  as.data.frame(args_firm,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+firm_args_by_env <-
+  args_firm  %>% group_by(environment) %>% group_by(class) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+firm_args_by_env  <-
+  as.data.frame(firm_args_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+firm_args_by_env  <-
+  as.data.frame((firm_args_by_env[-12, ]))
+
+firm_args_by_env  <-
+  as.data.frame((firm_args_by_env[, -8]))
+
+firm_args_by_env[is.na(firm_args_by_env)] <- 0
+
+row.names(firm_args_by_env) = firm_args_by_env[, 1]
+firm_args_by_env_traits <-
+  as.data.frame((firm_args_by_env[, -1]))
+
+#Test the likelihood of ARGs by classes across environment
+G.test.args.firm.host <-
+  GTest(firm_args_by_env_traits, correct = "none")
+G.test.args.firm.host
+
+cazys_firm <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
+    sheet = "firm_staph_removed"
+  )
+
+cazys_firm  <-
+  as.data.frame(cazys_firm,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+firm_cazys_by_env <-
+  cazys_firm  %>% group_by(environment) %>% group_by(cazy_domain1) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+firm_cazys_by_env  <-
+  as.data.frame(firm_cazys_by_env,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+firm_cazys_by_env  <-
+  as.data.frame((firm_cazys_by_env[-51, ]))
+
+firm_cazys_by_env[is.na(firm_cazys_by_env)] <- 0
+
+row.names(firm_cazys_by_env) = firm_cazys_by_env[, 1]
+firm_cazys_by_env_traits <-
+  as.data.frame((firm_cazys_by_env[, -1]))
+
+#Test the likelihood of CAZymes across environment
+G.test.cazys.firm.host <-
+  GTest(firm_cazys_by_env_traits, correct = "none")
+G.test.cazys.firm.host
+
+nit_firm <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
+    sheet = "firm_staph_removed"
+  )
+
+nit_firm  <-
+  as.data.frame(nit_firm,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+firm_nit_by_env <-
+  nit_firm  %>% group_by(environment) %>% group_by(gene_family) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+firm_nit_by_env  <-
+  as.data.frame(firm_nit_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+firm_nit_by_env  <-
+  as.data.frame((firm_nit_by_env[-18, ]))
+
+firm_nit_by_env  <-
+  as.data.frame((firm_nit_by_env[, -9]))
+
+firm_nit_by_env[is.na(firm_nit_by_env)] <- 0
+
+row.names(firm_nit_by_env) = firm_nit_by_env[, 1]
+firm_nit_by_env_traits <-
+  as.data.frame((firm_nit_by_env[, -1]))
+
+#Test the likelihood of nitrogen gene families across environment
+G.test.nit.firm.host <-
+  GTest(firm_nit_by_env_traits, correct = "none")
+G.test.nit.firm.host
+
+mob_firm <-
+  read_excel(
+    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
+    sheet = "firm_staph_removed"
+  )
+
+mob_firm  <-
+  as.data.frame(mob_firm,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+firm_mob_by_env <-
+  mob_firm  %>% group_by(environment) %>% group_by(relaxase_family_name) %>% dplyr::count(environment) %>% pivot_wider(names_from = environment, values_from = n)
+
+firm_mob_by_env  <-
+  as.data.frame(firm_mob_by_env, col.names	=	TRUE,	row.names	=	TRUE)
+
+firm_mob_by_env  <-
+  as.data.frame((firm_mob_by_env[-(10), ]))
+
+firm_mob_by_env[is.na(firm_mob_by_env)] <- 0
+
+row.names(firm_mob_by_env) = firm_mob_by_env[, 1]
+firm_mob_by_env_traits <-
+  as.data.frame((firm_mob_by_env[, -1]))
+
+#Test the likelihood of mobility across environment
+G.test.mob.firm.host <-
+  GTest(firm_mob_by_env_traits, correct = "none")
+G.test.mob.firm.host
+
+```
+
+```{r Plasmid replicon types by environment and accessory traits, echo=FALSE}
+
+#Adding a different grouping of replicon types, following Douarre et al., 2020 groupings.
+rep_by_env_traits2 <-
+  read_excel(
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/replicon_counts.xlsx",
+    sheet = "Sheet2"
+  )
+
+rep_by_env_traits2  <-
+  as.data.frame(rep_by_env_traits2,
+                col.names	=	TRUE,
+                row.names	=	TRUE)
+
+rep_by_env_traits2.1 <- rep_by_env_traits2[-1]
+row.names(rep_by_env_traits2.1) <- rep_by_env_traits2$replicon_type
+
+G.test.rep.env <- GTest(rep_by_env_traits2.1, correct = "none")
+G.test.rep.env
+
+#Remove all rows who sum to less than 6 (i.e., remove rare rep)
+rep_by_env_traits.m <-
+  rep_by_env_traits2.1[rowSums(rep_by_env_traits2.1) >= 6,]
+nrow(rep_by_env_traits.m)
+rowSums(rep_by_env_traits.m)
+
+colSums(rep_by_env_traits.m)
+rowSums(rep_by_env_traits.m)
+nrow(rep_by_env_traits.m)
+
+rep_sum <- (934 + 3343 + 25 + 48 + 57 + 34 + 17)
+rep_sum
+
+rep_anim_hum_percentage <- ((934 + 3343) / rep_sum) * 100
+rep_anim_hum_percentage
+
+rep_other_env <- ((25 + 48 + 57 + 34 + 17) / rep_sum) * 100
+rep_other_env
+
+#write.xlsx(
+#rep_by_env_traits.m,
+#file = "rep_counts2.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+rep.env.stand <-
+  sweep(rep_by_env_traits.m,
+        2,
+        colSums(rep_by_env_traits.m),
+        `/`)
+colSums(rep.env.stand) #all of the columns sums should add to 1
+
+normalized.rep <-
+  rowNorms(rep.env.stand,
+           type = "z",
+           center = TRUE,
+           scale = TRUE)
+
+rowSums(normalized.rep)
+
+#write.xlsx(
+#normalized.rep,
+#file = "rep_categories_norm.xlsx",
+#sheetName = "Sheet1",
+#col.names = TRUE,
+#row.names = TRUE
+#)
+
+#Then using the standardized matrix, first by env (columns) then by reps(rows) make a Euclidean distance matrix
+dist_env_rep <- vegdist(t(normalized.rep), method = 'euclidean')
+clusters.env.rep <- hclust(dist_env_rep, 'ward.D')
+
+dist_rep <- vegdist(normalized.rep, method = 'euclidean')
+clusters.rep <- hclust(dist_rep, 'ward.D')
+
+figure_S5 <- heatmap.2(
+  normalized.rep,
+  Rowv = as.dendrogram(clusters.rep),
+  Colv = as.dendrogram(clusters.env.rep),
+  col = c(
+    "#236B8E",
+    "#33A1DE",
+    "#87CEEB",
+    "#BFEFFF",
+    "#F9F6EE",
+    "#ff7b7b",
+    "#ff5252",
+    "#ff0000",
+    "#a70000"
+  ),
+  trace = "none",
+  tracecol = "#edca80",
+  #margins = c(6, 40),
+  key.xlab = "Row Z-Score",
+  key.title = NA,
+  sepwidth = c(0.0000001, 0.000001),
+  sepcolor = "#FAF9F6",
+  colsep = 1:ncol(normalized.rep),
+  rowsep = 1:nrow(normalized.rep),
+  cexRow = 0.5,
+  cexCol = 0.5,
+  lhei = c(2, 10),
+  lmat = rbind(c(0, 3, 4), c(2, 1, 0)),
+  lwid = c(2, 4, 2)
+)
+
+#Figure 2B - Plasmid replicons vary across environments 
+
+#Remember to remove phyla with column sums equal to zero
+apply(rep_by_env_traits2.1, 1, sum)
+rep_by_env_traits2.1.t <- t(rep_by_env_traits2.1)
+rowSums(rep_by_env_traits2.1.t)
+rep_by_env_traits2.1.1 <-  
+  decostand(rep_by_env_traits2.1.t, method = "total")
+apply(rep_by_env_traits2.1.1, 1, sum)
+rep_by_env_traits2.1.1 <- as.data.frame(rep_by_env_traits2.1.1)
+rep_by_env_traits2.1.1$row_names <- row.names(rep_by_env_traits2.1.1)
+rep_by_env_traits.4 <-  rep_by_env_traits2.1.1 %>%
+  pivot_longer(!row_names, names_to = "rep_name", values_to = "rep_abundance")
+
+rep_by_env_traits.4 <- as.data.frame(rep_by_env_traits.4)
+rep_by_env_traits.4$rep_name[rep_by_env_traits.4$rep_abundance  < 0.01] <-
+  rep_by_env_traits.4$rep_name["rep < 0.01"]
+
+rep_by_env_traits.4$rep_name <-
+  as.character(rep_by_env_traits.4$rep_name)
+
+rep_by_env_traits.4$rep_name[is.na(rep_by_env_traits.4$rep_name)] <-
+  "rep < 0.01"
+rep_by_env_traits.4$rep_abundance <-
+  as.numeric(rep_by_env_traits.4$rep_abundance)
+
+kw.rep.env <-
+  kruskal.test(rep_abundance ~ row_names,
+               data = rep_by_env_traits.4)
+kw.rep.env
+
+c21 <- c("#d3d3d3",
+"#72be46",
+"#7061d5",
+"#d5a036",
+"#bd57c3",
+"#4a8a35",
+"#cc4795",
+"#60c185",
+"#dc4c7b",
+"#3fc1bf",
+"#cb3c44",
+"#39855f",
+"#d35f2c",
+"#5a9ad2",
+"#aeb254",
+"#705a9f",
+"#74742d",
+"#d487c2",
+"#af7340",
+"#9d4867",
+"#da7d72")
+
+figure_2B <-
+  ggplot(rep_by_env_traits.4,
+         aes(
+           x = fct_relevel(
+             row_names,
+             "human",
+             "animal",
+             "wastewater",
+             "plant",
+             "soil",
+             "marine",
+             "freshwater"
+           ),
+           y = rep_abundance,
+           fill = fct_reorder(rep_name, rep_abundance)
+         )) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_fill_manual(values = c21) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.25), expand = c(0, 0)) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(fill = "rep_name") +
+  xlab(label = "Environment") +
+  ylab(label = "Proportion of replicon types") +
+  guides(fill = guide_legend(title = "replicon types"))
+
+plot(figure_2B)
+
+figure_2 <-
+  ggarrange(
+    figure_2A,
+    figure_2B,
+    labels = c("A.", "B."),
+    align = "v",
+    ncol = 1,
+    nrow = 2,
+    widths = c(5, 5)
+  )
+plot(figure_2)
+
 ```
