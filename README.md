@@ -1,3 +1,4 @@
+Plasmid-Encoded Traits Vary across Environments
 # Sarai S. Finks and Jennifer B.H. Martiny, 2022 mBio.
 
 Abstract: Plasmids are key mobile genetic elements in bacterial evolution and ecology
