@@ -659,7 +659,7 @@ plot(figure_X)
 
 all_mob <-
   read_excel(
-    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
     sheet = "combined"
   )
 
@@ -925,7 +925,7 @@ mob.phyl.env.dist <- as.data.frame(as.matrix(mob.phyl.env.dist))
 
 all_cogs <-
   read_excel(
-    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
     sheet = "cogs"
   )
 
@@ -1027,7 +1027,7 @@ figure_3 <-
   rarecurve(
     cog_by_env_rare.t,
     step = 1000,
-    xlab = "No.of observed COG functions ",
+    xlab = "No. of plasmid genes observed",
     ylab = "Cumulative COG richness",
     label = TRUE,
     col = c07c,
@@ -1654,7 +1654,7 @@ cog.phyl.env.dist <- as.data.frame(as.matrix(cog.phyl.env.dist))
 
 all_cazy <-
   read_excel(
-    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
     sheet = "cazymes"
   )
 
@@ -1727,9 +1727,9 @@ G.test.cazy.mob.env
 #row.names = TRUE
 #)
 
-#Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment.
+#Figure 5 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment.
 
-#Figure 4B
+#Figure 5B
 
 cazy_by_env_traits.m <- as.matrix(cazy_by_env_traits)
 which(rownames(cazy_by_env_traits.m) == "not_detected")
@@ -1798,7 +1798,7 @@ clusters_env_cazy <- hclust(dist_env_cazy, 'average')
 dist_cazy <- vegdist(normalized.cazy, method = 'euclidean')
 clusters_cazy <- hclust(dist_cazy, 'average')
 
-figure_4B <- heatmap.2(
+figure_5B <- heatmap.2(
   normalized.cazy,
   Rowv = as.dendrogram(clusters_cazy),
   Colv = as.dendrogram(clusters_env_cazy),
@@ -1833,7 +1833,7 @@ figure_4B <- heatmap.2(
 G.test.cazy.env <- GTest(cazy_by_env_traits.m2, correct = "none")
 G.test.cazy.env
 
-#Figure A7 - Plasmid carbon degrading traits by host phylum and environment.
+#Figure S6C - Plasmid carbon degrading traits by host phylum and environment.
 
 #Subset dataframe by Proteobacteria specific columns
 
@@ -1919,7 +1919,7 @@ dist_prot_cazy <-
   vegdist(normalized.prot.cazy, method = 'euclidean')
 clusters_prot_cazy <- hclust(dist_prot_cazy, 'average')
 
-figure_A7_prot <- heatmap.2(
+figure_S6C_prot <- heatmap.2(
   as.matrix(normalized.prot.cazy[, prot_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -2032,7 +2032,7 @@ dist_firm_cazy <-
   vegdist(normalized.firm.cazy, method = 'euclidean')
 clusters_firm_cazy <- hclust(dist_firm_cazy, 'average')
 
-figure_A7_firm <- heatmap.2(
+figure_S6C_firm <- heatmap.2(
   as.matrix(normalized.firm.cazy[, firm_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -2144,7 +2144,7 @@ clusters_env_act_cazy <- hclust(dist_env_act_cazy, 'average')
 dist_act_cazy <- vegdist(normalized.act.cazy, method = 'euclidean')
 clusters_act_cazy <- hclust(dist_act_cazy, 'average')
 
-figure_A7_actino <- heatmap.2(
+figure_S6C_actino <- heatmap.2(
   as.matrix(normalized.act.cazy[, actino_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -2233,14 +2233,14 @@ cazy.phyl.env.dist <-
 
 cazy.phyl.env.dist <- as.data.frame(as.matrix(cazy.phyl.env.dist))
 
-write.xlsx2(
-  cazy.phyl.env.dist,
-  file = "cazy.phyl.env.dist.abund_50.xlsx",
-  sheetName = "Sheet1",
-  col.names = TRUE,
-  row.names = TRUE,
-  append = FALSE
-)
+#write.xlsx2(
+  #cazy.phyl.env.dist,
+  #file = "cazy.phyl.env.dist.abund_50.xlsx",
+  #sheetName = "Sheet1",
+  #col.names = TRUE,
+  #row.names = TRUE,
+  #append = FALSE
+#)
 
 ```
 
@@ -2248,7 +2248,7 @@ write.xlsx2(
 
 all_nit <-
   read_excel(
-    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
     sheet = "ncycl_v2"
   )
 
@@ -2321,9 +2321,9 @@ nit_by_mob_env_m <-
 G.test.nit.mob.env <- GTest(nit_by_mob.m, correct = "none")
 G.test.nit.mob.env
 
-#Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment.
+#Figure 5 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment.
 
-#Figure 4C
+#Figure 5C
 
 nit_by_env_traits.m <- as.matrix(nit_by_env_traits)
 which(rownames(nit_by_env_traits.m) == "not_detected")
@@ -2395,7 +2395,7 @@ clusters.env_nit <- hclust(dist_env_nit, 'average')
 dist_nit <- vegdist(normalized.nit, method = 'euclidean')
 clusters.nit <- hclust(dist_nit, 'average')
 
-figure_4C <- heatmap.2(
+figure_5C <- heatmap.2(
   normalized.nit,
   Rowv = as.dendrogram(clusters.nit),
   Colv = as.dendrogram(clusters.env_nit),
@@ -2430,7 +2430,7 @@ figure_4C <- heatmap.2(
 G.test.nit.env <- GTest(nit_by_env_traits.m2, correct = "none")
 G.test.nit.env
 
-#Figure A8 - Plasmid nitrogen cycling traits by host phylum and environment.
+#Figure S6D - Plasmid nitrogen cycling traits by host phylum and environment.
 
 #Subset dataframe by Proteobacteria specific columns.
 
@@ -2518,7 +2518,7 @@ clusters.env.prot.nit <- hclust(dist_env_prot_nit, 'average')
 dist_prot_nit <- vegdist(normalized.prot.nit, method = 'euclidean')
 clusters.prot.nit <- hclust(dist_prot_nit, 'average')
 
-figure_A8_prot <- heatmap.2(
+figure_S6D_prot <- heatmap.2(
   as.matrix(normalized.prot.nit[, prot_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -2633,7 +2633,7 @@ clusters.env.firm.nit <- hclust(dist_env_firm_nit, 'average')
 dist_firm_nit <- vegdist(normalized.firm.nit, method = 'euclidean')
 clusters.firm.nit <- hclust(dist_firm_nit, 'average')
 
-figure_A8_firm <- heatmap.2(
+figure_S6D_firm <- heatmap.2(
   as.matrix(normalized.firm.nit[, firm_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -2748,7 +2748,7 @@ clusters.env.act.nit <- hclust(dist_env_act_nit, 'average')
 dist_act_nit <- vegdist(normalized.act.nit, method = 'euclidean')
 clusters.act.nit <- hclust(dist_act_nit, 'average')
 
-figure_A8_actino <- heatmap.2(
+figure_S6D_actino <- heatmap.2(
   as.matrix(normalized.act.nit[, actino_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -2838,21 +2838,21 @@ nit.phyl.env.dist <-
 
 nit.phyl.env.dist <- as.data.frame(as.matrix(nit.phyl.env.dist))
 
-write.xlsx2(
-  nit.phyl.env.dist,
-  file = "nit.phyl.env.dist.abund.xlsx",
-  sheetName = "Sheet1",
-  col.names = TRUE,
-  row.names = TRUE,
-  append = FALSE
-)
+#write.xlsx2(
+  #nit.phyl.env.dist,
+  #file = "nit.phyl.env.dist.abund.xlsx",
+  #sheetName = "Sheet1",
+  #col.names = TRUE,
+  #row.names = TRUE,
+  #append = FALSE
+#)
 ```
 
 ```{r Resistance traits,include=FALSE, echo=FALSE}
 
 all_args <-
   read_excel(
-    "/Users/martinylab/Google_drive/uci_grad_school/my_projects/ch2_plasmidome/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx"
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx"
   )
 
 all_args  <-
@@ -2924,9 +2924,9 @@ args_by_mob_env_m <-
 G.test.arg.mob.env <- GTest(args_by_mob_m, correct = "none")
 G.test.arg.mob.env
 
-#Figure 4 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment
+#Figure 5 - Plasmid resistance, carbon-degradation and nitrogen cycling traits by environment
 
-#Figure 4A
+#Figure 5A
 
 args_by_env_traits.m <- as.matrix(args_by_env_traits)
 colSums(args_by_env_traits.m)
@@ -2995,7 +2995,7 @@ clusters.env_args <- hclust(dist_env_args, 'average')
 dist_args <- vegdist(normalized.args, method = 'euclidean')
 clusters.args <- hclust(dist_args, 'average')
 
-figure_4A <- heatmap.2(
+figure_5A <- heatmap.2(
   normalized.args,
   Rowv = as.dendrogram(clusters.args),
   Colv = as.dendrogram(clusters.env_args),
@@ -3030,7 +3030,7 @@ figure_4A <- heatmap.2(
 G.test.arg.env <- GTest(args_by_env_traits.m2, correct = "none")
 G.test.arg.env
 
-#Figure A6 - Plasmid resistance traits by host phylum and environment.
+#Figure S6B - Plasmid resistance traits by host phylum and environment.
 
 #Subset dataframe by Proteobacteria specific columns.
 args_by_env_prot.m <-
@@ -3114,7 +3114,7 @@ dist_prot_args <-
   vegdist(normalized.prot.args, method = 'euclidean')
 clusters.prot.args <- hclust(dist_prot_args, 'average')
 
-figure_A6_prot <- heatmap.2(
+figure_S6B_prot <- heatmap.2(
   as.matrix(normalized.prot.args[, prot_order]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -3236,7 +3236,7 @@ firm_order_args <- c(
   "Firmicutes_marine"
 )
 
-figure_A6_firm <- heatmap.2(
+figure_S6B_firm <- heatmap.2(
   as.matrix(normalized.firm.args[, firm_order_args]),
   Rowv = FALSE,
   Colv = FALSE,
@@ -3356,21 +3356,21 @@ args.phyl.env.dist <-
 
 args.phyl.env.dist <- as.data.frame(as.matrix(args.phyl.env.dist))
 
-write.xlsx2(
-  args.phyl.env.dist,
-  file = "args.phyl.env.dist.abund.xlsx",
-  sheetName = "Sheet1",
-  col.names = TRUE,
-  row.names = TRUE,
-  append = FALSE
-)
+#write.xlsx2(
+  #args.phyl.env.dist,
+  #file = "args.phyl.env.dist.abund.xlsx",
+  #sheetName = "Sheet1",
+  #col.names = TRUE,
+  #row.names = TRUE,
+  #append = FALSE
+#)
 ```
 
 ```{r Assessing biases in the PLSDB dataset, echo=FALSE}
 
 filtered.plsdb <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/filtered_plsdb.xlsx"
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/filtered_plsdb.xlsx"
   )
 filtered.plsdb  <-
   as.data.frame(filtered.plsdb, col.names	=	TRUE,	row.names	=	TRUE)
@@ -3391,6 +3391,7 @@ df <- filtered.plsdb.1 %>%
   )
 
 #For plot parameters and ideas, see https://rpubs.com/techanswers88/sankey-with-own-data-in-ggplot
+
 figure_S1 <- ggplot(
   df,
   aes(
@@ -3432,7 +3433,7 @@ plot(figure_S1)
 
 ```
 
-```{r Quantifying plasmids counts by species: E. coli and K. pneumoniae, echo=FALSE}
+```{r Quantifying plasmids counts: E. coli and K. pneumoniae, echo=FALSE}
 
 ecoli <-
   read_excel(
@@ -3482,7 +3483,7 @@ ecoli_env <-
   theme(legend.position = "none") +
   geom_text(aes(y = value, label = name), color = "white", size = 6)
 
-plot(ecoli_env)
+plot(ecoli_env) #figure not included in final version
 
 ecoli_size_box <-
   ggplot(
@@ -3551,7 +3552,7 @@ ecoli_size_box <-
   theme(legend.title = element_blank()) +
   theme(legend.position = "none")
 
-plot(ecoli_size_box)
+plot(ecoli_size_box) #figure not included in final version
 
 #Testing whether whether human and non-human animals differ in their trait content
 cogs_ecoli <-
@@ -3583,11 +3584,10 @@ row.names(ecoli_cog_by_env) = ecoli_cog_by_env[, 1]
 ecoli_cog_by_env_traits <-
   as.data.frame((ecoli_cog_by_env[, -1]))
 
-#So we want to test just between the human and the non-human animal ecoli, lets subset this dataframe
+#test between the human and the non-human animal ecoli, lets subset this dataframe
 ecoli_cog_host <-
   ecoli_cog_by_env_traits %>% dplyr::select(animal,
                                             human)
-
 ecoli_cog_host  <-
   as.matrix(ecoli_cog_host)
 
@@ -3721,7 +3721,7 @@ G.test.nit.ecoli.host
 
 mob_ecoli <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
     sheet = "ecoli"
   )
 
@@ -3760,7 +3760,7 @@ G.test.mob.ecoli.host
 #When we consider just the sample size of the Klebsiella...
 kpneum <-
   read_excel(
-    "~/Google_drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/kpneum.xlsx"
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/kpneum.xlsx"
   )
 
 kpneum  <-
@@ -3800,7 +3800,7 @@ kpneum_env <-
   theme(legend.position = "none") +
   geom_text(aes(y = value, label = name), color = "white", size = 6)
 
-plot(kpneum_env)
+plot(kpneum_env) #figure not included in final version
 
 kpneum_size_box <-
   ggplot(
@@ -3857,7 +3857,7 @@ kpneum_size_box <-
   theme(legend.title = element_blank()) +
   theme(legend.position = "none")
 
-plot(kpneum_size_box)
+plot(kpneum_size_box) #figure not included in final version
 
 klebsiella <-
   read_excel(
@@ -3905,7 +3905,7 @@ klebsiella_env <-
   theme(legend.position = "none") +
   geom_text(aes(y = value, label = name), color = "white", size = 6)
 
-plot(klebsiella_env)
+plot(klebsiella_env) #figure not included in final version
 
 klebsiella_size_box <-
   ggplot(
@@ -3977,7 +3977,7 @@ klebsiella_size_box <-
   theme(legend.title = element_blank()) +
   theme(legend.position = "none")
 
-plot(klebsiella_size_box)
+plot(klebsiella_size_box) #figure not included in final version
 
 ```
 
@@ -3985,7 +3985,7 @@ plot(klebsiella_size_box)
 
 cogs_prot <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
     sheet = "proteobact_big3_removed"
   )
 
@@ -4019,7 +4019,7 @@ G.test.cog.prot.host
 
 args_prot <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx",
     sheet = "proteobact_big3_removed"
   )
 
@@ -4053,7 +4053,7 @@ G.test.args.prot.host
 
 cazys_prot <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
     sheet = "proteobact_big3_removed"
   )
 
@@ -4092,7 +4092,7 @@ G.test.cazys.prot.host
 
 nit_prot <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
     sheet = "proteobact_big3_removed"
   )
 
@@ -4126,7 +4126,7 @@ G.test.nit.prot.host
 
 mob_prot <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
     sheet = "proteobact_big3_removed"
   )
 
@@ -4160,7 +4160,7 @@ G.test.mob.prot.host
 
 cogs_firm <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cogs.xlsx",
     sheet = "firm_staph_removed"
   )
 
@@ -4197,7 +4197,7 @@ G.test.cog.firm.host
 
 args_firm <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_args.xlsx",
     sheet = "firm_staph_removed"
   )
 
@@ -4231,7 +4231,7 @@ G.test.args.firm.host
 
 cazys_firm <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_cazy.xlsx",
     sheet = "firm_staph_removed"
   )
 
@@ -4264,7 +4264,7 @@ G.test.cazys.firm.host
 
 nit_firm <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_nit.xlsx",
     sheet = "firm_staph_removed"
   )
 
@@ -4298,7 +4298,7 @@ G.test.nit.firm.host
 
 mob_firm <-
   read_excel(
-    "~/Google Drive/My Drive/uci_grad_school/my_projects/ch2/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
+    "/plasmids__2020_06_29__v0.4.1-6-g8ad6422194/trait_analysis/all_mob.xlsx",
     sheet = "firm_staph_removed"
   )
 
